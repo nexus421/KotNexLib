@@ -46,7 +46,7 @@ fun Date.toCalendar(locale: Locale = Locale.getDefault()) = Calendar.getInstance
  * If you have a Pair with two Calendars in it, you can easily calculate the difference in milliseconds with this method.
  */
 fun Pair<Calendar, Calendar>.calculateTimeDiffInMinutes(): Long {
-    return TimeUnit.MILLISECONDS.toMinutes((second.time.time ?: 0) - (first.time.time ?: 0))
+    return TimeUnit.MILLISECONDS.toMinutes(second.time.time - first.time.time)
 }
 
 infix fun Date.addMillis(millis: Long) {

@@ -3,7 +3,7 @@ plugins {
     `maven-publish`
 }
 
-group = "bayern.kickner"
+group = "com.github.nexus421"
 version = "1.0"
 
 repositories {

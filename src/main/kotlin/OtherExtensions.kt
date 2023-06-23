@@ -21,7 +21,7 @@ inline val Any.TAG: String
  * @param D Rückgabewert der aufzurufenden Methode
  * @return Den Rückgabewert der aufgerufenen Methode oder null
  */
-fun <D> Any.callMethodByName(methodName: String, vararg args: Any?) = this.javaClass.getMethod(methodName).let { if (args.isEmpty()) it.invoke(this) else it.invoke(this, *args) } as? D?
+private fun <D> Any.callMethodByName(methodName: String, vararg args: Any?) = this.javaClass.getMethod(methodName).let { if (args.isEmpty()) it.invoke(this) else it.invoke(this, *args) } as? D?
 
 /**
  * Castet this in C. Force-Cast. Wenn es fehlschlägt, gibt es eine Exception
@@ -44,7 +44,7 @@ inline fun <reified C, R> Any.letCast(block: (C) -> R): R = (this as C).let(bloc
  * @param varName Name der Variable nach dessen Getter im aktuellen Objekt gesucht werden soll
  * @return Ergebnis des Getters. Null kann das Ergebnis des Getters, aber auch ein Fehler sein!
  */
-fun <D> Any.get(varName: String): D? {
+private fun <D> Any.get(varName: String): D? {
     val getterName = "get${varName.replace(".", "").replaceFirstChar { it.toString().uppercase() }}"
     return callMethodByName<D>(getterName)
 }
@@ -58,7 +58,7 @@ fun <D> Any.get(varName: String): D? {
  * @param valueToSet Dieser Wert wird über den Setter gesetzt.
  * @return Nichts, wie ein Setter eben auch
  */
-fun <D> Any.set(varName: String, valueToSet: D) {
+private fun <D> Any.set(varName: String, valueToSet: D) {
     val setterName = "set${varName.replace(".", "").replaceFirstChar { it.toString().uppercase() }}"
     callMethodByName<D>(setterName, valueToSet)
 }
