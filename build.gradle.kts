@@ -1,9 +1,10 @@
 plugins {
     kotlin("jvm") version "1.8.21"
+    `maven-publish`
 }
 
 group = "bayern.kickner"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
