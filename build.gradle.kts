@@ -21,3 +21,16 @@ tasks.test {
 kotlin {
     jvmToolchain(11)
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            //from(components.release)
+
+            groupId = "com.github.nexus421"
+            artifactId = "KotNexLib"
+            version = "1.0.0"
+        }
+    }
+}
+
