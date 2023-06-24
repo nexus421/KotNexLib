@@ -1,4 +1,4 @@
-package bayern.kickner.kotlin_extensions_android
+
 
 /**
  * Iterates this Iterable and calls action.

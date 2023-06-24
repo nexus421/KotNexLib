@@ -1,4 +1,4 @@
-package bayern.kickner.kotlin_extensions_android.file
+package file
 
 import java.io.File
 import java.text.SimpleDateFormat

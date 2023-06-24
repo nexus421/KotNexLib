@@ -1,4 +1,4 @@
-package bayern.kickner.kotlin_extensions_android
+
 
 /**
  * Calculates the Heap-Memory aka RAM for this App in Megabyte

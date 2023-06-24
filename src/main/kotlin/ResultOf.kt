@@ -1,4 +1,4 @@
-package bayern.kickner.kotlin_extensions_android
+
 
 sealed class ResultOf<out T> {
     data class Success<out R>(val value: R): ResultOf<R>()

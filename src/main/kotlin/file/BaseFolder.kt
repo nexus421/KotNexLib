@@ -1,6 +1,5 @@
-package bayern.kickner.kotlin_extensions_android.file
+package file
 
-import bayern.kickner.kotlin_extensions_android.ifFalse
 import java.io.File
 
 /**

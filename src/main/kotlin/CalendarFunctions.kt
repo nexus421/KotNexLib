@@ -1,5 +1,3 @@
-package bayern.kickner.kotlin_extensions_android
-
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime

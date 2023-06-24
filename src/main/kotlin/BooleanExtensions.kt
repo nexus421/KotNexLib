@@ -1,4 +1,3 @@
-package bayern.kickner.kotlin_extensions_android
 
 /**
  * Executes doThis if this Boolean is ture. Returns this again

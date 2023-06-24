@@ -1,4 +1,6 @@
-package bayern.kickner.kotlin_extensions_android.file
+package file
+
+import file.ConfigFile
 
 /**
  * Manages base folder, config file and log file.
