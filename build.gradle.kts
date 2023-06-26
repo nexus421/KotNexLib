@@ -1,11 +1,12 @@
 plugins {
     kotlin("jvm") version "1.8.21"
-    id("io.ktor.plugin") version "2.3.1"
+    //id("io.ktor.plugin") version "2.3.1"
     `maven-publish`
 }
 
 group = "com.github.nexus421"
-version = "1.0.1"
+version = "1.0.2"
+val globalVersion = version.toString()
 
 repositories {
     mavenCentral()
@@ -23,24 +24,24 @@ kotlin {
     jvmToolchain(11)
 }
 
-application {
-    mainClass.set("")
-}
+//application {
+//    mainClass.set("")
+//}
 
-ktor {
-    fatJar {
-        archiveFileName.set("kotNexLib_$version.jar")
-    }
-}
+//ktor {
+//    fatJar {
+//        archiveFileName.set("kotNexLib_$version.jar")
+//    }
+//}
 
 publishing {
     publications {
-        create<MavenPublication>("release") {
-            //from(components.release)
+        create<MavenPublication>("maven") {
 
             groupId = "com.github.nexus421"
             artifactId = "KotNexLib"
-            version = "1.0.1"
+            version = globalVersion
+            from(components["java"])
         }
     }
 }
