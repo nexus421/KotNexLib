@@ -11,7 +11,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
