@@ -164,6 +164,18 @@ val String.isAlphabeticOnly: Boolean
 val String.isAlphanumericOnly: Boolean
     get() = matches(Regex("^[a-zA-Z\\d]*\$"))
 
+fun String.toDate(pattern: String = "dd.MM.yyyy", fallback: Date) = toDateOrNull(pattern) ?: fallback
+
+fun String.toDateOrNull(pattern: String = "dd.MM.yyyy"): Date? {
+    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+    return try {
+        sdf.parse(this)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+@Deprecated("Use toDate with fallback or toDateOrNull")
 fun String.toDate(pattern: String = "dd.MM.yyyy"): Date? {
     val sdf = SimpleDateFormat(pattern, Locale.getDefault())
     return try {

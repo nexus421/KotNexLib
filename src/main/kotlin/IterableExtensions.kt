@@ -1,4 +1,5 @@
 
+typealias LastElement = Boolean
 
 /**
  * Iterates this Iterable and calls action.
@@ -6,7 +7,7 @@
  *
  * @param action Callback for each iteration. T == Element, Boolean == IsLastElement
  */
-inline fun <T> Iterable<T>.forEachDoLast(action: (T, Boolean) -> Unit) {
+inline fun <T> Iterable<T>.forEachDoLast(action: (T, LastElement) -> Unit) {
     val end = count()
     forEachIndexed { index, t ->
         action(t, index == end - 1)
@@ -21,7 +22,7 @@ inline fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
 /**
  * Splits this list into two.
  *
- * @param predicate condition. On true fills trueList, on false fills falseList
+ * @param predicate condition. T is the current element. On true fills trueList, on false fills falseList
  *
  * @return SplitList containing splitted list
  */

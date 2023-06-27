@@ -3,7 +3,7 @@
 import kotlin.system.measureTimeMillis
 
 /**
- * Measures the time like measureTimeMillis. But this method can return anything including the execution time.
+ * Measures the time like [measureTimeMillis]. But this method can return anything including the execution time.
  */
 fun <T> measureTimeMillisAndReturn(block: () -> T): ResultTimeMeasure<T> {
     val result: T

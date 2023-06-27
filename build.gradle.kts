@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "1.0.2"
+version = "1.1.0"
 val globalVersion = version.toString()
 
 repositories {
