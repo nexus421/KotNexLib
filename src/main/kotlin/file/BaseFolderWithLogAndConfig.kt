@@ -14,16 +14,16 @@ import file.ConfigFile
  * @param path to your root working directory. Do not use a separator at the and! Defaults to user.home
  * @param name of the workingDirFolder
  */
-class BaseFolderWithLogAndConfig<T>(
+open class BaseFolderWithLogAndConfig<T>(
     format: String = "dd.MM.yyyy HH:mm",
     allowConfigChanges: Boolean = false,
     default: T,
     loadConfig: (String, T) -> T,
     storeConfig: (T) -> String,
     path: String = System.getProperty("user.home"),
-    name: String
-) : BaseFolder( path, name) {
-    val log = LogFile(format, this)
-    val config = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, this)
-
+    name: String,
+    val baseFolder: BaseFolder = BaseFolder(path, name)
+) {
+    val log = LogFile(format, baseFolder)
+    val config = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, baseFolder)
 }

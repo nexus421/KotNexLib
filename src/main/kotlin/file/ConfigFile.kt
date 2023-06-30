@@ -1,5 +1,6 @@
 package file
 
+import ifNull
 import java.io.File
 
 /**
@@ -16,10 +17,14 @@ open class ConfigFile<T>(
     default: T,
     private val loadConfig: (String, T) -> T,
     private val storeConfig: (T) -> String,
-    baseFolder: BaseFolder
+    baseFolder: BaseFolder? = null
 ) {
 
-    val configFile = File(baseFolder.baseFolder, "config.json")
+    val configFile = baseFolder?.baseFolder.ifNull(isNull = {
+        File("config.json")
+    }) {
+        File(this, "config.json")
+    }
     var config: T
         private set
 

@@ -1,5 +1,7 @@
 package file
 
+import ifNull
+import withNewLine
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -7,26 +9,72 @@ import java.util.Date
 /**
  * Manages a simple logfile for simple logging
  */
-open class LogFile(format: String = "dd.MM.yyyy HH:mm", baseFolder: BaseFolder) {
+open class LogFile(
+    format: String = "dd.MM.yyyy HH:mm",
+    baseFolder: BaseFolder? = null,
+    private val logSizeSettings: LogSizeSettings? = LogSizeSettings()
+) {
 
-    val logFile = File(baseFolder.baseFolder, "logfile.log")
+    val logFile = baseFolder?.baseFolder.ifNull(isNull = {
+        File("logfile.log")
+    }) {
+        File(this, "logfile.log")
+    }
     val sdf = SimpleDateFormat(format)
 
     init {
-        if(logFile.exists().not()) {
-            if(logFile.createNewFile()) writeLog("Logfile created at ${logFile.absolutePath}")
+        if (logFile.exists().not()) {
+            if (logFile.createNewFile()) writeLog("Logfile created at ${logFile.absolutePath}")
             else writeLog("Error creating logfile at ${logFile.absolutePath}")
         } else println("Logfile available at ${logFile.absolutePath}")
-    }
 
-    @Synchronized
-    fun writeLog(msg: String, t: Throwable? = null, printToStdout: Boolean = true) {
-        val msgToLog = "${sdf.format(Date())} -> $msg${if(t != null) "\n" + t.stackTraceToString() else ""}"
-        logFile.appendText(msgToLog)
-        if(printToStdout) {
-            if(t != null) System.err.println(msgToLog)
-            else println(msgToLog)
+        if (logSizeSettings != null) {
+            if (logFile.length() > logSizeSettings.maxSizeInBytes) {
+                if (logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
+                logFile.writeText("")
+            }
         }
     }
 
+    /**
+     * Use this method if [LogSizeSettings] is not null and you want to check the logs file size.
+     * If the max file size is reached, the complete log-text will be moved to [LogSizeSettings.oldLogFile] and [logFile] will be cleared.
+     *
+     * Log-size will be always checked on init
+     */
+    @Synchronized
+    fun copyLogToOldAndClearIfFull() {
+        if(logSizeSettings == null) {
+            writeLog("Can't check log file size because LogSizeSettings is null. Check constructor if you to use this method.")
+            return
+        }
+        if (logFile.length() > logSizeSettings.maxSizeInBytes) {
+            println("Log is full. Move and clear log.")
+            if(logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
+            logFile.writeText("Copied full log to ${logSizeSettings.oldLogFile.absolutePath} and cleared this one.")
+        }
+    }
+
+
+    @Synchronized
+    fun writeLog(msg: String, t: Throwable? = null, printToStdout: Boolean = true) {
+        val msgToLog = "${sdf.format(Date())} -> $msg${if (t != null) "\n" + t.stackTraceToString() else ""}"
+        if (printToStdout) {
+            if (t != null) System.err.println(msgToLog)
+            else println(msgToLog)
+        }
+        logFile.appendText(msgToLog.withNewLine())
+    }
+
+}
+
+/**
+ * Use this if you don't want your logfile to get to huge.
+ *
+ * @param maxSizeInBytes max size of your logfile. If this is reached, everything will be moved to [oldLogFileName]
+ * @param oldLogFileName Name of the file where all logs will be moved, if [maxSizeInBytes] is reached
+ */
+class LogSizeSettings(val maxSizeInBytes: Long = 2_000_000, oldLogFileName: String = "oldLog.log", val baseFolder: BaseFolder? = null) {
+
+    val oldLogFile = if(baseFolder == null) File(oldLogFileName) else File(baseFolder.baseFolder, oldLogFileName)
 }
