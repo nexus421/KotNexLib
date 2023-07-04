@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation ("com.github.nexus421:KotNexLib:1.0.3")
+    implementation ("com.github.nexus421:KotNexLib:1.2.0")
 }
 
 See releases for other versions.
