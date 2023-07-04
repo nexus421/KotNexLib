@@ -4,7 +4,7 @@ import ifNull
 import withNewLine
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 
 /**
  * Manages a simple logfile for simple logging
@@ -50,12 +50,19 @@ open class LogFile(
         }
         if (logFile.length() > logSizeSettings.maxSizeInBytes) {
             println("Log is full. Move and clear log.")
-            if(logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
+            if (logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
             logFile.writeText("Copied full log to ${logSizeSettings.oldLogFile.absolutePath} and cleared this one.")
         }
     }
 
-
+    /**
+     * Simple example for a log.
+     * This will append each call to the [logFile] with the current time. This method is also synchronized.
+     *
+     * @param msg Message which should be written
+     * @param t Any throwable (optional) which will be appended with a new line to [msg] if not null with [Throwable.stackTraceToString]
+     * @param printToStdout if true, this log will also printed to the standard output [println]
+     */
     @Synchronized
     fun writeLog(msg: String, t: Throwable? = null, printToStdout: Boolean = true) {
         val msgToLog = "${sdf.format(Date())} -> $msg${if (t != null) "\n" + t.stackTraceToString() else ""}"

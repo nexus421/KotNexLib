@@ -1,7 +1,5 @@
 package file
 
-import file.ConfigFile
-
 /**
  * Manages base folder, config file and log file.
  * See [BaseFolder], [LogFile] and [ConfigFile] for more.
@@ -20,10 +18,11 @@ open class BaseFolderWithLogAndConfig<T>(
     default: T,
     loadConfig: (String, T) -> T,
     storeConfig: (T) -> String,
-    path: String = System.getProperty("user.home"),
-    name: String,
-    val baseFolder: BaseFolder = BaseFolder(path, name)
+    val baseFolder: BaseFolder
 ) {
     val log = LogFile(format, baseFolder)
-    val config = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, baseFolder)
+    val configFile = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, baseFolder)
+
+    fun getConfig() = configFile.config
+
 }

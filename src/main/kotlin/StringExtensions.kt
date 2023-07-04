@@ -9,11 +9,12 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
 /**
- * Der übergebene String wird, abgesehen vom ersten und letzten Zeichen, durch Sternchen ersetzt.
- * Siehe Dokumentation -> [.coverString]
- * Bsp. Hallo wird zu H***o
+ * Given string will be covered with stars (*) only the first and last letter will not be changed.
+ * e. g. -> "Hello" will be "H***o"
  *
- * @return verschleierten String oder leerer String falls s == null
+ * For custom start/ending use [coverString]
+ *
+ * @return covered string
  */
 fun String.coverString() = coverString(1, this.length - 2)
 
@@ -21,7 +22,6 @@ fun String.coverString() = coverString(1, this.length - 2)
  * Der übergebene String wird zwischen start und end durch Sternchen ersetzt.
  * Dient zur Anonymisierung eines Strings
  *
- * @param s     String der verschleiert werden soll
  * @param start ab hier werden Sternchen eingefügt
  * @param end   bis hier werden Sternchen eingefügt
  * @return verschleierten String
@@ -56,7 +56,7 @@ fun String.hash(hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA_256) = MessageD
 /**
  * Possible Hash-Algorithms
  *
- * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work in all Java platforms
+ * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work in all Java platforms. Amazon Coretto does support this!
  * Refer: https://docs.oracle.com/javase/7/docs/api/java/security/MessageDigest.html
  */
 enum class HashAlgorithm(val algorithm: String) {

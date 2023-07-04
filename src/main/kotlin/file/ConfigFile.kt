@@ -11,13 +11,15 @@ import java.io.File
  * @param loadConfig used to deserialize the config-object from the string of the file to the config object. The second parameter is the default-config-object. I suggest using kotlin JSON serialize.
  * @param storeConfig used to serialize the config-object to a string which will be written to the config file. I suggest using kotlin JSON serialize.
  * @param baseFolder for storage
+ * @param printLoadedConfig if true, the loaded config will be printed to standard output through toString.
  */
 open class ConfigFile<T>(
     val allowConfigChanges: Boolean = false,
     default: T,
     private val loadConfig: (String, T) -> T,
     private val storeConfig: (T) -> String,
-    baseFolder: BaseFolder? = null
+    baseFolder: BaseFolder? = null,
+    printLoadedConfig: Boolean = false
 ) {
 
     val configFile = baseFolder?.baseFolder.ifNull(isNull = {
@@ -31,6 +33,7 @@ open class ConfigFile<T>(
     init {
         if (configFile.exists()) {
             config = loadConfig(configFile.readText(), default)
+            println("Config loaded with ${if (printLoadedConfig) config.toString() else ""}")
         } else {
             if (configFile.createNewFile()) {
                 configFile.writeText(storeConfig(default))
@@ -43,6 +46,11 @@ open class ConfigFile<T>(
         }
     }
 
+    /**
+     * Reads [configFile] new from memory an refreshes [config]
+     *
+     * @return new loaded config
+     */
     @Synchronized
     fun reloadConfig(): T {
         config = loadConfig(configFile.readText(), config)
@@ -50,6 +58,10 @@ open class ConfigFile<T>(
         return config
     }
 
+    /**
+     * If [allowConfigChanges] is true, you can change the stored config file.
+     * Everything from [newConfig] will be written to [configFile] and hold in memory through [config]
+     */
     @Synchronized
     fun storeNewConfig(newConfig: T) {
         if (allowConfigChanges) {
