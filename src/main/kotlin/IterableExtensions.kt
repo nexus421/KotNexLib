@@ -31,10 +31,38 @@ inline fun <T> Iterable<T>.splitFilter(predicate: (T) -> Boolean): SplitList<T> 
     val falseList = mutableListOf<T>()
 
     forEach {
-        if(predicate(it)) trueList.add(it) else falseList.add(it)
+        if (predicate(it)) trueList.add(it) else falseList.add(it)
     }
 
     return SplitList(trueList, falseList)
 }
+
+/**
+ * If the size of this collection is 1, than [sizeIsOne] will be called with this value.
+ */
+inline fun <T> Collection<T>.ifSizeIsOne(sizeIsOne: (T) -> Unit) {
+    if (size == 1) sizeIsOne(first())
+}
+
+/**
+ * @return true, if [size] is equal to [Collection.size]
+ */
+fun <T> Collection<T>.sizeIs(size: Int) = this.size == size
+
+/**
+ * Checks if the collection has the size of [size]. If so, then [sizeIs] will be called with all values.
+ * If [size] is 1, you may use [ifSizeIsOne].
+ */
+inline fun <T> Collection<T>.ifSizeIs(size: Int, sizeIs: (Collection<T>) -> Unit) {
+    if (this.size == size) sizeIs(this)
+}
+
+/**
+ * Checks if the collection has not the size of [size]. If so, then [sizeIsNot] will be called with all values.
+ */
+inline fun <T> Collection<T>.ifSizeIsNot(size: Int, sizeIsNot: (Collection<T>) -> Unit) {
+    if (this.size != size) sizeIsNot(this)
+}
+
 
 data class SplitList<T>(val trueList: List<T>, val falseList: List<T>)
