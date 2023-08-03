@@ -184,3 +184,8 @@ fun String.toDate(pattern: String = "dd.MM.yyyy"): Date? {
         null
     }
 }
+
+/**
+ * Hex-String to Decimal-Int
+ */
+fun String.hexToInt() = Integer.parseInt(this, 16)

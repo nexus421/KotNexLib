@@ -25,3 +25,20 @@ fun getRandomString(length: Int, allowedChars: List<Char> = ('A'..'Z') + ('a'..'
     .map { allowedChars.random() }
     .joinToString("")
 
+/**
+ * Calculates the block check character (BCC) for error detection.
+ * This BCC is calculated by XOR-ing each byte with the result of the previous XOR.
+ *
+ * @return BCC result as String
+ */
+fun String.calcBcc(ignoreFirstCharacter: Boolean = true): String {
+
+    //Der erste character muss ignoriert werden.
+    //Eigentlich nur das erste STX oder SOH
+    var cbcChar = this[if (ignoreFirstCharacter) 1 else 0].code
+    for (i in (if (ignoreFirstCharacter) 2 else 1) until length) {
+        cbcChar = cbcChar xor this[i].code
+    }
+    return cbcChar.toChar().toString()
+}
+

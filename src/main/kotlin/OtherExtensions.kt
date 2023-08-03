@@ -1,9 +1,3 @@
-
-
-import java.io.File
-import java.nio.file.Files
-
-
 /**
  * This gets the name of the current Class.
  * I use this for my Logs. So I always have an identical TAG to use
@@ -63,3 +57,5 @@ private fun <D> Any.set(varName: String, valueToSet: D) {
     callMethodByName<D>(setterName, valueToSet)
 }
 
+@OptIn(ExperimentalUnsignedTypes::class)
+fun ByteArray.toHexString() = asUByteArray().joinToString(separator = "") { it.toString(16).padStart(2, '0') }
