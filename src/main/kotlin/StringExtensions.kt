@@ -9,33 +9,23 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
 /**
- * Given string will be covered with stars (*) only the first and last letter will not be changed.
- * e. g. -> "Hello" will be "H***o"
+ * Given string will be covered with [coverChar] from [start] to [end].
+ * Default uses '*' and covers all characters except the first and last one.
  *
- * For custom start/ending use [coverString]
+ * @param start start index to start covering. Default is 1.
+ * @param end   end index to end covering. Default is [String.length] - 2
  *
- * @return covered string
+ * @return (partly) covered string. If the given index is to high/low, the original string will be returned.
  */
-fun String.coverString() = coverString(1, this.length - 2)
+fun String.coverString(start: Int = 1, end: Int = length - 2, coverChar: Char = '*'): String {
+    require(start < end) { "Start has to be lower than end!" }
+    if (isEmpty()) return this
+    if ((end >= length || start < 0).not()) return this
 
-/**
- * Der übergebene String wird zwischen start und end durch Sternchen ersetzt.
- * Dient zur Anonymisierung eines Strings
- *
- * @param start ab hier werden Sternchen eingefügt
- * @param end   bis hier werden Sternchen eingefügt
- * @return verschleierten String
- */
-fun String.coverString(start: Int, end: Int): String {
-    val length = this.length
-    if (length < 1) return this
-    require(!(end >= length || start < 0)) {
-        "Start or end Argument is not allowed! start = $start end = $end"
-    }
     val result = toCharArray()
-    for (i in 0 until length) {
+    for (i in indices) {
         if (i in start..end) {
-            result[i] = '*'
+            result[i] = coverChar
         }
     }
     return String(result)
@@ -81,10 +71,7 @@ fun String?.isNotNullOrBlank() = !isNullOrBlank()
  *
  * "".ifNullOrBlank{ "Kadoffe"} -> Results: "Kadoffe"
  */
-inline fun String?.ifNullOrBlank(action: () -> String): String {
-    return if (isNullOrBlank()) action()
-    else this
-}
+inline fun String?.ifNullOrBlank(action: () -> String): String = if (isNullOrBlank()) action() else this
 
 /**
  * Replaces all characters from a String matching "match" until the first character is found, which does not equal "match"
@@ -164,8 +151,18 @@ val String.isAlphabeticOnly: Boolean
 val String.isAlphanumericOnly: Boolean
     get() = matches(Regex("^[a-zA-Z\\d]*\$"))
 
+
+/**
+ * Converts this String to a [Date] with the given [pattern].
+ *
+ * @param pattern used to convert the String to a Date.
+ * @param fallback Date to return when conversion failed.
+ */
 fun String.toDate(pattern: String = "dd.MM.yyyy", fallback: Date) = toDateOrNull(pattern) ?: fallback
 
+/**
+ * Converts this String to a [Date] with the given [pattern] or null if the conversion failed.
+ */
 fun String.toDateOrNull(pattern: String = "dd.MM.yyyy"): Date? {
     val sdf = SimpleDateFormat(pattern, Locale.getDefault())
     return try {
@@ -189,3 +186,16 @@ fun String.toDate(pattern: String = "dd.MM.yyyy"): Date? {
  * Hex-String to Decimal-Int
  */
 fun String.hexToInt() = Integer.parseInt(this, 16)
+
+/**
+ * Checks if this string contains all elements from [list]
+ *
+ * @param list elements required in this String.
+ * @param ignoreCase if true, the strings a compared with ignore case
+ */
+fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean {
+    for (element in list) {
+        if (contains(element, ignoreCase).not()) return false
+    }
+    return true
+}

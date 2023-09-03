@@ -19,3 +19,9 @@ sealed class ResultOfEmpty<out T> {
     object Success: ResultOfEmpty<Nothing>()
     data class Failure<out T>(val value: T): ResultOfEmpty<T>()
 }
+
+sealed class ResultOfTripple<out T, out V, out M> {
+    data class Success<T>(val value: T) : ResultOfTripple<T, Nothing, Nothing>()
+    data class Warning<T>(val value: T) : ResultOfTripple<Nothing, T, Nothing>()
+    data class Error<T>(val value: T) : ResultOfTripple<Nothing, Nothing, T>()
+}

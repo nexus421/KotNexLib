@@ -27,6 +27,10 @@ inline fun <reified C> Any.cast(): C = this as C
  */
 inline fun <reified C> Any.safeCast(): C? = this as? C
 
+/**
+ * Cast this to C and calls [block] with the casted object.
+ * Throws exception if cast is not possible.
+ */
 inline fun <reified C, R> Any.letCast(block: (C) -> R): R = (this as C).let(block)
 
 /**

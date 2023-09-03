@@ -13,6 +13,18 @@ fun <T> measureTimeMillisAndReturn(block: () -> T): ResultTimeMeasure<T> {
     return ResultTimeMeasure(result, time)
 }
 
+/**
+ * Measures the time like [measureTimeMillis]. But this method can return anything including the execution time.
+ * Does the exact same as [measureTimeMillisAndReturn] but uses a shorter name.
+ */
+fun <T> measureTime(block: () -> T): ResultTimeMeasure<T> {
+    val result: T
+    val time = measureTimeMillis {
+        result = block()
+    }
+    return ResultTimeMeasure(result, time)
+}
+
 data class ResultTimeMeasure<T>(val result: T, val timeMillis: Long)
 
 /**
