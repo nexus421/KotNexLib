@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.9.10"
     //id("io.ktor.plugin") version "2.3.1"
     `maven-publish`
 }
 
 group = "com.github.nexus421"
-version = "1.5.0"
+version = "1.6.0"
 val globalVersion = version.toString()
 
 repositories {

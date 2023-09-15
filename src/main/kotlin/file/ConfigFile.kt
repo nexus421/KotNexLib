@@ -10,8 +10,9 @@ import java.io.File
  * @param default config to use for config creation
  * @param loadConfig used to deserialize the config-object from the string of the file to the config object. The second parameter is the default-config-object. I suggest using kotlin JSON serialize.
  * @param storeConfig used to serialize the config-object to a string which will be written to the config file. I suggest using kotlin JSON serialize.
- * @param baseFolder for storage
+ * @param baseFolder as parent for config storage
  * @param printLoadedConfig if true, the loaded config will be printed to standard output through toString.
+ * @param printInfo if you don't want to print the information to stdout, set this to false. Overrides printLoadedConfig
  */
 open class ConfigFile<T>(
     val allowConfigChanges: Boolean = false,
@@ -19,7 +20,8 @@ open class ConfigFile<T>(
     private val loadConfig: (String, T) -> T,
     private val storeConfig: (T) -> String,
     baseFolder: BaseFolder? = null,
-    printLoadedConfig: Boolean = false
+    printLoadedConfig: Boolean = false,
+    private val printInfo: Boolean = true
 ) {
 
     val configFile = baseFolder?.baseFolder.ifNull(isNull = {
@@ -33,15 +35,18 @@ open class ConfigFile<T>(
     init {
         if (configFile.exists()) {
             config = loadConfig(configFile.readText(), default)
-            println("Config loaded with ${if (printLoadedConfig) config.toString() else ""}")
+            println("Config loaded with ${if (printLoadedConfig) config.toString() else ""}", printInfo)
         } else {
             if (configFile.createNewFile()) {
                 configFile.writeText(storeConfig(default))
                 config = default
-                println("Config created at ${configFile.absolutePath} with the default object.")
+                println("Config created at ${configFile.absolutePath} with the default object.", printInfo)
             } else {
                 config = default
-                println("Error creating config file at ${configFile.absolutePath}! Only the default config is available!")
+                println(
+                    "Error creating config file at ${configFile.absolutePath}! Only the default config is available!",
+                    printInfo
+                )
             }
         }
     }
@@ -54,7 +59,7 @@ open class ConfigFile<T>(
     @Synchronized
     fun reloadConfig(): T {
         config = loadConfig(configFile.readText(), config)
-        println("Reloaded config from ${configFile.absolutePath}")
+        println("Reloaded config from ${configFile.absolutePath}", printInfo)
         return config
     }
 
@@ -67,7 +72,10 @@ open class ConfigFile<T>(
         if (allowConfigChanges) {
             configFile.writeText(storeConfig(newConfig))
             config = newConfig
-        } else println("Config changes are not allowed! Change allowConfigChanges to true in constructor to change setting at runtime.")
+        } else println(
+            "Config changes are not allowed! Change allowConfigChanges to true in constructor to change setting at runtime.",
+            printInfo
+        )
     }
 
 

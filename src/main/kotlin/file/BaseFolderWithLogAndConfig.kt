@@ -9,8 +9,9 @@ package file
  * @param default config to use for config creation
  * @param loadConfig used to deserialize the config-object from the string of the file to the config object. The second parameter is the default-config-object. I suggest using kotlin JSON serialize.
  * @param storeConfig used to serialize the config-object to a string which will be written to the config file. I suggest using kotlin JSON serialize.
- * @param path to your root working directory. Do not use a separator at the and! Defaults to user.home
- * @param name of the workingDirFolder
+ * @param logSizeSettings for custom Log settings
+ * @param baseFolder Parent folder for log and config
+ * @param printInfo if you don't want to print the information to stdout, set this to false.
  */
 open class BaseFolderWithLogAndConfig<T>(
     format: String = "dd.MM.yyyy HH:mm",
@@ -18,10 +19,13 @@ open class BaseFolderWithLogAndConfig<T>(
     default: T,
     loadConfig: (String, T) -> T,
     storeConfig: (T) -> String,
-    val baseFolder: BaseFolder
+    logSizeSettings: LogSizeSettings = LogSizeSettings(),
+    val baseFolder: BaseFolder,
+    printInfo: Boolean = true
 ) {
-    val log = LogFile(format, baseFolder)
-    val configFile = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, baseFolder)
+    val log =
+        LogFile(format = format, baseFolder = baseFolder, logSizeSettings = logSizeSettings, printInfo = printInfo)
+    val configFile = ConfigFile(allowConfigChanges, default, loadConfig, storeConfig, baseFolder, printInfo = printInfo)
 
     fun getConfig() = configFile.config
 

@@ -8,11 +8,17 @@ import java.util.*
 
 /**
  * Manages a simple logfile for simple logging
+ *
+ * @param format Date and Time format for Logs
+ * @param baseFolder for logfile. If null, this File will be created at the execution path
+ * @param logSizeSettings for custom Log settings
+ * @param printInfo if you don't want to print the information to stdout, set this to false.
  */
 open class LogFile(
     format: String = "dd.MM.yyyy HH:mm",
     baseFolder: BaseFolder? = null,
-    private val logSizeSettings: LogSizeSettings? = LogSizeSettings()
+    private val logSizeSettings: LogSizeSettings? = LogSizeSettings(),
+    printInfo: Boolean = true
 ) {
 
     val logFile = baseFolder?.baseFolder.ifNull(isNull = {
@@ -25,8 +31,8 @@ open class LogFile(
     init {
         if (logFile.exists().not()) {
             if (logFile.createNewFile()) writeLog("Logfile created at ${logFile.absolutePath}")
-            else writeLog("Error creating logfile at ${logFile.absolutePath}")
-        } else println("Logfile available at ${logFile.absolutePath}")
+            else writeLog("Error creating logfile at ${logFile.absolutePath}", printToStdout = printInfo)
+        } else println("Logfile available at ${logFile.absolutePath}", printInfo)
 
         if (logSizeSettings != null) {
             if (logFile.length() > logSizeSettings.maxSizeInBytes) {

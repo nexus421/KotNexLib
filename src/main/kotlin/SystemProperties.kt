@@ -1,10 +1,9 @@
 import java.io.File
-import java.lang.System
 
 /**
  * System properties from https://docs.oracle.com/javase/tutorial/essential/environment/sysprop.html
  */
-object System {
+object SystemProperties {
 
     /**
      * User home directory.

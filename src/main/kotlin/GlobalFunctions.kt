@@ -5,7 +5,7 @@ import kotlin.system.measureTimeMillis
 /**
  * Measures the time like [measureTimeMillis]. But this method can return anything including the execution time.
  */
-fun <T> measureTimeMillisAndReturn(block: () -> T): ResultTimeMeasure<T> {
+inline fun <T> measureTimeMillisAndReturn(block: () -> T): ResultTimeMeasure<T> {
     val result: T
     val time = measureTimeMillis {
         result = block()
@@ -17,7 +17,7 @@ fun <T> measureTimeMillisAndReturn(block: () -> T): ResultTimeMeasure<T> {
  * Measures the time like [measureTimeMillis]. But this method can return anything including the execution time.
  * Does the exact same as [measureTimeMillisAndReturn] but uses a shorter name.
  */
-fun <T> measureTime(block: () -> T): ResultTimeMeasure<T> {
+inline fun <T> measureTime(block: () -> T): ResultTimeMeasure<T> {
     val result: T
     val time = measureTimeMillis {
         result = block()
@@ -40,6 +40,14 @@ inline fun <reified T> doUntilNotNull(noinline onNull: (() -> Unit)? = null, act
         } ?: onNull?.invoke()
     }
 }
+
+//inline fun <reified T> doUntil(condition: () -> Boolean, noinline onConditionNotFulfilled: (() -> Unit)? = null, action: () -> T?): T {
+//    while (condition()) {
+//        action()?.let {
+//            return it
+//        } ?: onConditionNotFulfilled?.invoke()
+//    }
+//}
 
 
 

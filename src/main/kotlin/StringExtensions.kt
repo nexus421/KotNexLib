@@ -1,5 +1,3 @@
-
-
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
@@ -7,6 +5,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import javax.crypto.Cipher
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Given string will be covered with [coverChar] from [start] to [end].
@@ -198,4 +201,83 @@ fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean 
         if (contains(element, ignoreCase).not()) return false
     }
     return true
+}
+
+/**
+ * Encrypt String with PBKDF2WithHmacSHA1
+ *
+ * @param encryptionData Data for encryption. Need to be the same as for [decrypt]
+ */
+fun String.encrypt(encryptionData: EncryptionData): String? { //ResultOf
+    try {
+        val ivParameterSpec = IvParameterSpec(Base64.getDecoder().decode(encryptionData.iv))
+
+
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+        val spec = PBEKeySpec(
+            encryptionData.secretKey.toCharArray(),
+            Base64.getDecoder().decode(encryptionData.salt),
+            10000,
+            256
+        )
+        val tmp = factory.generateSecret(spec)
+        val secretKey = SecretKeySpec(tmp.encoded, "AES")
+
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)
+        return Base64.getEncoder().encodeToString(cipher.doFinal(toByteArray(Charsets.UTF_8)))
+    } catch (e: Exception) {
+        println("Error while encrypting: $e")
+    }
+    return null
+}
+
+
+fun String.decrypt(encryptionData: EncryptionData): String? {
+    try {
+
+
+        val ivParameterSpec = IvParameterSpec(Base64.getDecoder().decode(encryptionData.iv))
+
+
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+        val spec = PBEKeySpec(
+            encryptionData.secretKey.toCharArray(),
+            Base64.getDecoder().decode(encryptionData.salt),
+            10000,
+            256
+        )
+        val tmp = factory.generateSecret(spec);
+        val secretKey = SecretKeySpec(tmp.encoded, "AES")
+
+
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+        return String(cipher.doFinal(Base64.getDecoder().decode(this)))
+    } catch (e: Exception) {
+        println("Error while decrypting: $e");
+    }
+    return null
+}
+
+/**
+ * Used for encryption/decryption.
+ * WARNING: Use other Values for the defaults for security reasons!
+ * Hint: Currently I'm not sure if here is a exact length required. If your Keys fail, compare the length of yours with the defaults!
+ *
+ * @param secretKey Base64-encoded String
+ * @param salt Base64-encoded String
+ * @param iv Base64-encoded String
+ */
+data class EncryptionData(
+    val secretKey: String = "tK5UTui+DPh8lIlBxya5XVsmeDCoUl6vHhdIESMB6sQ=",
+    val salt: String = "QWlGNHNhMTJTQWZ2bGhpV3U=",
+    val iv: String = "bVQzNFNhRkQ1Njc4UUFaWA=="
+) {
+    init {
+        //Secret key bestimmte länge? testen!
+//        if(salt.length != 16) throw IllegalStateException("Salt length has to be 16!")
+//        if(iv.length != 16) throw IllegalStateException("IV length has to be 16!")
+    }
 }
