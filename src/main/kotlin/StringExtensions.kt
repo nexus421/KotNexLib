@@ -248,15 +248,15 @@ fun String.decrypt(encryptionData: EncryptionData): String? {
             10000,
             256
         )
-        val tmp = factory.generateSecret(spec);
+        val tmp = factory.generateSecret(spec)
         val secretKey = SecretKeySpec(tmp.encoded, "AES")
 
 
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)
         return String(cipher.doFinal(Base64.getDecoder().decode(this)))
     } catch (e: Exception) {
-        println("Error while decrypting: $e");
+        println("Error while decrypting: $e")
     }
     return null
 }

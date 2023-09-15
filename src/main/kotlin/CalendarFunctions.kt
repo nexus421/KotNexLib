@@ -83,20 +83,20 @@ infix fun Date.addMillis(millis: Long) {
     time += millis
 }
 
-fun Date.convertToLocalDateTime() = toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+fun Date.convertToLocalDateTime(): LocalDateTime = toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
 
-fun LocalTime.toHHMM() = format(DateTimeFormatter.ofPattern("HH:mm"))
+fun LocalTime.toHHMM(): String = format(DateTimeFormatter.ofPattern("HH:mm"))
 
-fun LocalDate.getAsDate() = Date.from( atStartOfDay(ZoneId.systemDefault()).toInstant())
+fun LocalDate.getAsDate(): Date = Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
 
-fun LocalTime.getAsDate() = Date.from(atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant())
+fun LocalTime.getAsDate(): Date = Date.from(atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant())
 
-fun LocalDateTime.getAsDate() = Date.from(atZone(ZoneId.systemDefault()).toInstant())
+fun LocalDateTime.getAsDate(): Date = Date.from(atZone(ZoneId.systemDefault()).toInstant())
 
-fun Calendar.toLocalTime() = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
-fun Calendar.toLocalDate() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
-fun Calendar.toLocalDateTime() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+fun Calendar.toLocalTime(): LocalTime = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
+fun Calendar.toLocalDate(): LocalDate = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
+fun Calendar.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
 
-fun Date.toLocalTime() = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
-fun Date.toLocalDate() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
-fun Date.toLocalDateTime() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+fun Date.toLocalTime(): LocalTime = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
+fun Date.toLocalDate(): LocalDate = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
+fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())

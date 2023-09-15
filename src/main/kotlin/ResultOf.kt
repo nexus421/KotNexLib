@@ -16,7 +16,7 @@ sealed class ResultOf3<out T, out V, out X> {
 }
 
 sealed class ResultOfEmpty<out T> {
-    object Success: ResultOfEmpty<Nothing>()
+    data object Success : ResultOfEmpty<Nothing>()
     data class Failure<out T>(val value: T): ResultOfEmpty<T>()
 }
 
