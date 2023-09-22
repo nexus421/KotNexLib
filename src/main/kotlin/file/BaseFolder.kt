@@ -5,6 +5,9 @@ import java.io.File
 
 /**
  * Checks/Creates a folder at the given location. This can be used as your working directory.
+ * For BaseFolder with logging see [LogFile]
+ * For BaseFolder with config see [ConfigFile]
+ * For Both see [BaseFolderWithLogAndConfig]
  *
  * @param path to your root working directory. Do not use a separator at the and! Defaults to user.home
  * @param name of the workingDirFolder

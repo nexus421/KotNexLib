@@ -49,13 +49,15 @@ fun String.hash(hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA_256) = MessageD
 /**
  * Possible Hash-Algorithms
  *
- * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work in all Java platforms. Amazon Coretto does support this!
+ * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work on all Java platforms. Amazon Corretto does also support SHA-384 and SHA-512 this!
  * Refer: https://docs.oracle.com/javase/7/docs/api/java/security/MessageDigest.html
+ * Amazon Corretto: https://github.com/corretto/amazon-corretto-crypto-provider/blob/main/README.md
  */
 enum class HashAlgorithm(val algorithm: String) {
     MD5("MD5"),
     SHA_1("SHA-1"),
     SHA_256("SHA-256"),
+    SHA_384("SHA-384"),
     SHA_512("SHA-512"),
 }
 
@@ -93,6 +95,9 @@ fun String.replaceAllMatchingStart(match: Char): String {
     return this
 }
 
+/**
+ * @return If this String is not null, the String will be returned linke "[before]this[after]". Otherwise fallback will be returned.
+ */
 fun String?.embedIfNotNull(before: String = "", after: String = "", fallback: String = "") = if(this == null) fallback else before + this + after
 
 fun String?.isNotNullOrBlank(doThis: (String) -> Unit) {
@@ -201,6 +206,19 @@ fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean 
         if (contains(element, ignoreCase).not()) return false
     }
     return true
+}
+
+/**
+ * Checks if this String contains at least one element from [list].
+ *
+ * @param list elements to check if one of these are contained in this string
+ * @param ignoreCase if true, the strings will be compared using ignore case
+ */
+fun String.containsOneOf(list: List<String>, ignoreCase: Boolean = false): Boolean {
+    list.forEach {
+        if (contains(it, ignoreCase)) return true
+    }
+    return false
 }
 
 /**

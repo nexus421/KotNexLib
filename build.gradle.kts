@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "1.6.0"
+version = "1.7.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -23,16 +23,6 @@ tasks.test {
 kotlin {
     jvmToolchain(11)
 }
-
-//application {
-//    mainClass.set("")
-//}
-
-//ktor {
-//    fatJar {
-//        archiveFileName.set("kotNexLib_$version.jar")
-//    }
-//}
 
 publishing {
     publications {

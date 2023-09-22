@@ -4,9 +4,25 @@ import ifNull
 import java.io.File
 
 /**
- * Manages a simple config file.
+ * Manages a simple config file. Load, edit and store will be managed.
  *
- * @param allowConfigChanges allows to change the config at runtime through [reloadConfig]
+ * Example:
+ * ConfigFile(
+ *     default = TestConfig(""), loadConfig = { raw, default ->
+ *         try {
+ *             TODO("Convert raw to TestConfig. May use JSON with Kotlinx.serialisation for example.")
+ *         } catch (e: Exception) {
+ *             default
+ *         }
+ *     },
+ *     storeConfig = { testConfig ->
+ *         //Serialize this class to any String-representation. JSON for example.
+ *         testConfig.toString()
+ *     },
+ *     baseFolder = BaseFolder(name = "Test")
+ * )
+ *
+ * @param allowConfigChanges allows to change the config at runtime through [storeNewConfig]. Otherwise, only an error will be printed.
  * @param default config to use for config creation
  * @param loadConfig used to deserialize the config-object from the string of the file to the config object. The second parameter is the default-config-object. I suggest using kotlin JSON serialize.
  * @param storeConfig used to serialize the config-object to a string which will be written to the config file. I suggest using kotlin JSON serialize.
@@ -52,7 +68,7 @@ open class ConfigFile<T>(
     }
 
     /**
-     * Reads [configFile] new from memory an refreshes [config]
+     * Reads [configFile] new from storage into memory an refreshes [config]
      *
      * @return new loaded config
      */
