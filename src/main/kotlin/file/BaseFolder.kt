@@ -28,6 +28,19 @@ open class BaseFolder(path: String = System.getProperty("user.home"), name: Stri
             else println("Could not create base folder at ${baseFolder.absolutePath}", printInfo)
         }
     }
+
+    /**
+     * Creates a [File]-Object with [name] inside this [BaseFolder].
+     * This does never garantie the folder to be existent.
+     *
+     * @param name of the subfolder
+     * @param create if true, the folder will be created if not existent
+     */
+    fun getSubfolder(name: String, create: Boolean = false): File {
+        return File(baseFolder, name).apply {
+            if (exists().not()) mkdir()
+        }
+    }
 }
 
 internal fun println(msg: String, print: Boolean) {
