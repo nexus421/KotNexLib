@@ -13,8 +13,8 @@ Examples:
   BaseFolder, Logfile and ConfigFile
 - ResultOf-Variants for better State/Error-Handling like success/error.
 - Different new contains-functions for String
-- Create random Strings with easy with getRandomString()
-- function to measre time and return any value. See measureTime { ... }
+- Create random Strings with eas through getRandomString()
+- function to measure time including a return value. See measureTime { ... }
 - and many more...
 
 If you have any additional useful features or wishes, tell me!
@@ -28,7 +28,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
     }
 
     dependencies {
-        implementation ("com.github.nexus421:KotNexLib:1.7.0")
+        implementation ("com.github.nexus421:KotNexLib:1.8.0")
     }
 
 See releases for other versions.

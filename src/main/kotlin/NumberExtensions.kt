@@ -32,3 +32,20 @@ fun Long.negative() = if (this < 0) this else this * -1
 
 fun Long.toDate() = Date(this)
 fun Long.toLocalDateTime() = toDate().toLocalDateTime()
+
+/**
+ * Checks if this is between lower and higher like: lower < this < higher
+ */
+fun Int.isBetween(lower: Int, higher: Int) = lower < this && this < higher
+
+
+/**
+ * Checks if this is between lower and higher like: lower < this < higher
+ */
+fun Int.isBetween(lower: Double, higher: Double) = lower < this && this < higher
+
+
+/**
+ * Checks if this is between lower and higher like: lower < this < higher
+ */
+fun Double.isBetween(lower: Double, higher: Double) = lower < this && this < higher
