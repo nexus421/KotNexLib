@@ -79,11 +79,11 @@ fun String?.isNotNullOrBlank() = !isNullOrBlank()
 inline fun String?.ifNullOrBlank(action: () -> String): String = if (isNullOrBlank()) action() else this
 
 /**
- * Replaces all characters from a String matching "match" until the first character is found, which does not equal "match"
+ * Replaces all characters from a String matching [match] until the first character is found, which does not equal "match"
  * Example:
- * String = "0001234"
+ * String = "00012340"
  * match = '0'
- * Result = "1234"
+ * Result = "12340"
  *
  * @param match Character wich should be removed from the start
  * @return String which does not start with "match"
@@ -105,7 +105,7 @@ fun String?.isNotNullOrBlank(doThis: (String) -> Unit) {
 }
 
 /**
- * Compresses any String. Only usefully for large strings due to overhead. -> More Chars, better compression.
+ * Compresses any String. Only useful for large strings due to overhead. -> More Chars, better compression.
  *
  * @return Compressed String as Base64 or null, if an error occurred
  */

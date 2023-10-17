@@ -59,3 +59,22 @@ inline fun <T> tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, tryThi
         null
     }
 }
+
+/**
+ * Simple try-catch execution.
+ * Tries to execute [tryThis] inside a try-catch block.
+ *
+ * @param onError if not null, will be called if the execution throws a [Throwable]
+ * @param tryThis Block will be executed inside try-catch
+ * @param default on any exception, this will be returned
+ *
+ * @return If it fails, it will return [default]. Otherwise, the [tryThis] result
+ */
+inline fun <T> tryOrDefault(noinline onError: ((Throwable) -> Unit)? = null, default: T, tryThis: () -> T): T {
+    return try {
+        tryThis()
+    } catch (e: Throwable) {
+        onError?.let { it(e) }
+        default
+    }
+}

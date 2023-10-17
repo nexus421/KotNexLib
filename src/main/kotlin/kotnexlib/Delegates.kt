@@ -7,11 +7,13 @@ import kotlin.reflect.KProperty
 /**
  * Makes sure, that this variable will only be declared once and can't be changed afterward. Like a lateinit val.
  * Use it like: var test by Declare.once<String>()
+ * Throws [IllegalStateException] if var was not initialized before.
  *
  * @param throwOnChangeTry if true (default) an exception will be thrown if you try to change this var a second time.
+ *
+ * @return [T] or throws [IllegalStateException]
  */
-fun <T : Any> Delegates.once(throwOnChangeTry: Boolean = true): ReadWriteProperty<Any?, T> =
-    object : ReadWriteProperty<Any?, T> {
+fun <T : Any> Delegates.once(throwOnChangeTry: Boolean = true) = object : ReadWriteProperty<Any?, T> {
         private var value: T? = null
 
         override fun getValue(thisRef: Any?, property: KProperty<*>): T {
@@ -27,3 +29,28 @@ fun <T : Any> Delegates.once(throwOnChangeTry: Boolean = true): ReadWritePropert
             this.value = value
         }
     }
+
+/**
+ * Makes sure, that this variable will only be declared once and can't be changed afterward. Like a lateinit val.
+ * Use it like: var test by Declare.onceOrNull<String>()
+ *
+ * WARNING: If you try to set null to this variable, it will throw a [IllegalStateException]!
+ *
+ * @param throwOnChangeTry if true (default) an exception will be thrown if you try to change this var a second time.
+ *
+ * @return [T] or null if not set/initialized yet.
+ */
+fun <T : Any> Delegates.onceOrNull(throwOnChangeTry: Boolean = true) = object : ReadWriteProperty<Any?, T?> {
+    private var value: T? = null
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = value
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+        if (this.value != null) {
+            if (throwOnChangeTry) throw IllegalStateException("Property ${property.name} cannot be set more than once.")
+            else return
+        }
+        if (value == null) throw IllegalStateException("onceOrNull is not allowed to be set to null!")
+        this.value = value
+    }
+}
