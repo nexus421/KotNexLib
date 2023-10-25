@@ -66,3 +66,37 @@ inline fun <T> Collection<T>.ifSizeIsNot(size: Int, sizeIsNot: (Collection<T>) -
 
 
 data class SplitList<T>(val trueList: List<T>, val falseList: List<T>)
+
+/**
+ * Use this to easily handle the three most relevant (in my case) sizes to handle.
+ *
+ * Call this within a when expression to easily handle an empty collection and a collection with one element and a collection with more than one element.
+ *
+ * @return [IterableSize]. See those docs for more.
+ */
+fun <T : Any> Collection<T>.handleSizes(): IterableSize<T> {
+    return if (isEmpty()) IterableSize.IsEmpty()
+    else if (size == 1) IterableSize.IsOne(first())
+    else IterableSize.HasMany(this)
+}
+
+/**
+ * Manage the size-states from any collection through [handleSizes]
+ */
+sealed interface IterableSize<I> {
+
+    /**
+     * Will be used if the [Collection] is empty.
+     */
+    class IsEmpty<T> : IterableSize<T>
+
+    /**
+     * Will be used, if the [Collection] has exact one entry. This entry will be guaranteed accessible through [entry]
+     */
+    data class IsOne<T>(val entry: T) : IterableSize<T>
+
+    /**
+     * Will be used, if the [Collection] has more than one entry. All entries are accessible through [entries]
+     */
+    data class HasMany<T>(val entries: Collection<T>) : IterableSize<T>
+}

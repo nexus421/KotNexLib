@@ -29,24 +29,6 @@ fun <T> T?.default(value: T) = this ?: value
  * Tries to execute [tryThis] inside a try-catch block.
  *
  * @param onError if not null, will be called if the execution throws a [Throwable]
- * @param tryThis Block will be executed inside try-catch with this as parameter
- *
- * @return If it fails, it will only return null. Otherwise, the [tryThis] result
- */
-inline fun <T, V> T.tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, tryThis: T.() -> V?): V? {
-    return try {
-        tryThis()
-    } catch (e: Throwable) {
-        onError?.let { it(e) }
-        null
-    }
-}
-
-/**
- * Simple try-catch execution.
- * Tries to execute [tryThis] inside a try-catch block.
- *
- * @param onError if not null, will be called if the execution throws a [Throwable]
  * @param tryThis Block will be executed inside try-catch
  *
  * @return If it fails, it will only return null. Otherwise, the [tryThis] result
