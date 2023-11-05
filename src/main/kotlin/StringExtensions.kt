@@ -213,12 +213,30 @@ fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean 
  *
  * @param list elements to check if one of these are contained in this string
  * @param ignoreCase if true, the strings will be compared using ignore case
+ *
+ * @return true, if at least one element from [list] is contained.
  */
 fun String.containsOneOf(list: List<String>, ignoreCase: Boolean = false): Boolean {
     list.forEach {
         if (contains(it, ignoreCase)) return true
     }
     return false
+}
+
+/**
+ * Checks if this String contains at least one element from [list].
+ * Example: "Hello World!" with ["Banana", "World", "Car"] would return "World"
+ *
+ * @param list elements to check if one of these are contained in this string
+ * @param ignoreCase if true, the strings will be compared using ignore case
+ *
+ * @return the first matching String from [list] or null
+ */
+fun String.containsOneOfAndGet(list: List<String>, ignoreCase: Boolean = false): String? {
+    list.forEach {
+        if (contains(it, ignoreCase)) return it
+    }
+    return null
 }
 
 /**
