@@ -1,3 +1,4 @@
+import kotlinx.coroutines.delay
 
 
 /**
@@ -41,4 +42,67 @@ fun String.calcBcc(ignoreFirstCharacter: Boolean = true): String {
     }
     return cbcChar.toChar().toString()
 }
+
+/**
+ * This method executes [doThis]. If an [Throwable] will be thrown, [doThis] will be executed again after [waitBetweenRetryMillis] as long as all [attempts] are over.
+ *
+ * @param doubleWaitingTimeOnRetry if true, the time from [waitBetweenRetryMillis] will be doubled on each new try.
+ * @param onError If not null, will be called with the thrown [Throwable].
+ *
+ * @return [T] if any attempt succeeded or null if all attempts failed.
+ */
+suspend fun <T> retryOnError(
+    attempts: Int = 3,
+    waitBetweenRetryMillis: Long = 100,
+    doubleWaitingTimeOnRetry: Boolean = false,
+    onError: ((Throwable) -> Unit)? = null,
+    doThis: suspend () -> T
+): T? = try {
+    doThis()
+} catch (t: Throwable) {
+    onError?.let { it(t) }
+    if (attempts > 0) {
+        if (waitBetweenRetryMillis > 0) delay(waitBetweenRetryMillis)
+        retryOnError(
+            attempts - 1,
+            waitBetweenRetryMillis * if (doubleWaitingTimeOnRetry) 2 else 1,
+            doubleWaitingTimeOnRetry,
+            onError,
+            doThis
+        )
+    } else null
+}
+
+
+/**
+ * This method executes [doThis]. If an [Throwable] will be thrown, [doThis] will be executed again after [waitBetweenRetryMillis] as long as all [attempts] are over.
+ *
+ * @param doubleWaitingTimeOnRetry if true, the time from [waitBetweenRetryMillis] will be doubled on each new try.
+ * @param onError If not null, will be called with the thrown [Throwable].
+ *
+ * @throws [Throwable] if all [attempts] failed
+ * @return [T] if any attempt succeeded
+ */
+suspend fun <T> retryOnErrorOrThrow(
+    attempts: Int = 3,
+    waitBetweenRetryMillis: Long = 100,
+    doubleWaitingTimeOnRetry: Boolean = false,
+    onError: ((Throwable) -> Unit)? = null,
+    doThis: suspend () -> T
+): T = try {
+    doThis()
+} catch (t: Throwable) {
+    onError?.let { it(t) }
+    if (attempts > 0) {
+        if (waitBetweenRetryMillis > 0) delay(waitBetweenRetryMillis)
+        retryOnErrorOrThrow(
+            attempts - 1,
+            waitBetweenRetryMillis * if (doubleWaitingTimeOnRetry) 2 else 1,
+            doubleWaitingTimeOnRetry,
+            onError,
+            doThis
+        )
+    } else throw t
+}
+
 
