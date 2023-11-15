@@ -1,4 +1,3 @@
-
 /**
  * Executes doThis if this Boolean is ture. Returns this again
  */
@@ -41,3 +40,17 @@ val Boolean?.orTrue: Boolean
 
 val Boolean?.orFalse: Boolean
     get() = this ?: false
+
+/**
+ * @param startUpperCase if true, the first letter will be uppercase. Default false
+ * @return "ja" for true and "nein" for false.
+ */
+fun Boolean.toGerman(startUpperCase: Boolean = false) =
+    if (startUpperCase) if (this) "Ja" else "Nein" else if (this) "ja" else "nein"
+
+/**
+ * @param startUpperCase if true, the first letter will be uppercase. Default false
+ * @return "yes" for true and "no" for false.
+ */
+fun Boolean.toEnglish(startUpperCase: Boolean = false) =
+    if (startUpperCase) if (this) "Yes" else "No" else if (this) "yes" else "no"

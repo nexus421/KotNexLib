@@ -49,3 +49,41 @@ fun Int.isBetween(lower: Double, higher: Double) = lower < this && this < higher
  * Checks if this is between lower and higher like: lower < this < higher
  */
 fun Double.isBetween(lower: Double, higher: Double) = lower < this && this < higher
+
+/**
+ * Converts this through [TimeUnit] to milliseconds.
+ * Example:
+ * 60.toMillisFrom(TimeUnit.Second) == 60_000 ms
+ * 60.toMillisFrom(TimeUnit.Day) == 5_184_000_000 ms
+ *
+ * @param timeUnit the Unit this Integer represents
+ */
+fun Int.toMillisFrom(timeUnit: TimeUnit): Long {
+    return when (timeUnit) {
+        TimeUnit.Day -> this.toLong() * 24 * 60 * 60 * 1000
+        TimeUnit.Hour -> this.toLong() * 60 * 60 * 1000
+        TimeUnit.Minute -> this.toLong() * 60 * 1000
+        TimeUnit.Second -> this.toLong() * 1000
+    }
+}
+
+/**
+ * Converts this through [TimeUnit] to milliseconds.
+ * Example:
+ * 60.toMillisFrom(TimeUnit.Second) == 60_000 ms
+ * 60.toMillisFrom(TimeUnit.Day) == 5_184_000_000 ms
+ *
+ * @param timeUnit the Unit this Long represents
+ */
+fun Long.toMillisFrom(timeUnit: TimeUnit): Long {
+    return when (timeUnit) {
+        TimeUnit.Day -> this * 24 * 60 * 60 * 1000
+        TimeUnit.Hour -> this * 60 * 60 * 1000
+        TimeUnit.Minute -> this * 60 * 1000
+        TimeUnit.Second -> this * 1000
+    }
+}
+
+enum class TimeUnit {
+    Day, Hour, Minute, Second
+}
