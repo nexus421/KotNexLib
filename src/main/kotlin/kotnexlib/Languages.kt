@@ -7,8 +7,8 @@ class Languages(val code: String, val language: String, val region: String, val 
 
     enum class BCP47(val code: String, val language: String, val region: String, val description: String) {
         ArabicSaudiArabia("ar-SA", "Arabic", "Saudi Arabia", "Arabic (Saudi Arabia)"),
-        BanglaBangladesh("bn-BD", "Bangla", "Bangladesh", "Bangla (Bangladesh)"),
-        BanglaIndia("bn-IN", "Bangla", "India", "Bangla (India)"),
+        BengaliBangladesh("bn-BD", "Bangla", "Bangladesh", "Bangla (Bangladesh)"),
+        BengaliIndia("bn-IN", "Bangla", "India", "Bangla (India)"),
         CzechCzechRepublic("cs-CZ", "Czech", "Czech Republic", "Czech (Czech Republic)"),
         DanishDenmark("da-DK", "Danish", "Denmark", "Danish (Denmark)"),
         GermanAustria("de-AT", "German", "Austria", "Austrian German"),
@@ -41,13 +41,13 @@ class Languages(val code: String, val language: String, val region: String, val 
         ItalianSwitzerland("it-CH", "Italian", "Switzerland", "\"Swiss\" Italian"),
         ItalianItaly("it-IT", "Italian", "Italy", "Standard Italian (as spoken in Italy)"),
         JapaneseJapan("jp-JP", "Japanese", "Japan", "Japanese (Japan)"),
-        KoreanRepublicofKorea("ko-KR", "Korean", "Republic of Korea", "Korean (Republic of Korea)"),
+        KoreanRepublicOfKorea("ko-KR", "Korean", "Republic of Korea", "Korean (Republic of Korea)"),
         DutchBelgium("nl-BE", "Dutch", "Belgium", "Belgian Dutch"),
         DutchTheNetherlands("nl-NL", "Dutch", "The Netherlands", "Standard Dutch (as spoken in The Netherlands)"),
         NorwegianNorway("no-NO", "Norwegian", "Norway", "Norwegian (Norway)"),
         PolishPoland("pl-PL", "Polish", "Poland", "Polish (Poland)"),
-        PortugeseBrazil("pt-BR", "Portugese", "Brazil", "Brazilian Portuguese"),
-        PortugesePortugal("pt-PT", "Portugese", "Portugal", "European Portuguese (as written and spoken in Portugal)"),
+        PortugueseBrazil("pt-BR", "Portuguese", "Brazil", "Brazilian Portuguese"),
+        PortuguesePortugal("pt-PT", "Portuguese", "Portugal", "European Portuguese (as written and spoken in Portugal)"),
         RomanianRomania("ro-RO", "Romanian", "Romania", "Romanian (Romania)"),
         RussianRussianFederation("ru-RU", "Russian", "Russian Federation", "Russian (Russian Federation)"),
         SlovakSlovakia("sk-SK", "Slovak", "Slovakia", "Slovak (Slovakia)"),
@@ -57,7 +57,7 @@ class Languages(val code: String, val language: String, val region: String, val 
         ThaiThailand("th-TH", "Thai", "Thailand", "Thai (Thailand)"),
         TurkishTurkey("tr-TR", "Turkish", "Turkey", "Turkish (Turkey)"),
         ChineseChina("zh-CN", "Chinese", "China", "Mainland China, simplified characters"),
-        ChineseHondKong("zh-HK", "Chinese", "Hond Kong", "Hong Kong, traditional characters"),
+        ChineseHongKong("zh-HK", "Chinese", "Hong Kong", "Hong Kong, traditional characters"),
         ChineseTaiwan("zh-TW", "Chinese", "Taiwan", "Taiwan, traditional characters"),
 
     }
