@@ -63,3 +63,5 @@ private fun <D> Any.set(varName: String, valueToSet: D) {
 
 @OptIn(ExperimentalUnsignedTypes::class)
 fun ByteArray.toHexString() = asUByteArray().joinToString(separator = "") { it.toString(16).padStart(2, '0') }
+
+

@@ -1,3 +1,5 @@
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
@@ -315,5 +317,16 @@ data class EncryptionData(
         //Secret key bestimmte länge? testen!
 //        if(salt.length != 16) throw IllegalStateException("Salt length has to be 16!")
 //        if(iv.length != 16) throw IllegalStateException("IV length has to be 16!")
+    }
+}
+
+/**
+ * Sets this String to the clipboard of the system.
+ * This may not work on Android!
+ */
+fun String.copyToClipboard() {
+    tryOrNull {
+        val selection = StringSelection(this)
+        Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
     }
 }
