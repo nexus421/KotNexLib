@@ -18,12 +18,12 @@ inline val Any.TAG: String
 private fun <D> Any.callMethodByName(methodName: String, vararg args: Any?) = this.javaClass.getMethod(methodName).let { if (args.isEmpty()) it.invoke(this) else it.invoke(this, *args) } as? D?
 
 /**
- * Castet this in C. Force-Cast. Wenn es fehlschlägt, gibt es eine Exception
+ * Cast this to C. Force-Cast. Throws exception on error.
  */
 inline fun <reified C> Any.cast(): C = this as C
 
 /**
- * Castet this in C. Wenn der Cast fehlschlägt, ist das Ergebnis null.
+ * Casts this to C. If the cast failed, it will return null.
  */
 inline fun <reified C> Any.safeCast(): C? = this as? C
 

@@ -330,3 +330,32 @@ fun String.copyToClipboard() {
         Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
     }
 }
+
+/**
+ * Shortcut to convert any String to its Base64 representation.
+ */
+fun String.toBase64(): String = Base64.getEncoder().encodeToString(toByteArray())
+
+/**
+ * Shortcut to convert any Base64-String back to its String representation.
+ * @return the String representation or throws an exception on any error.
+ */
+fun String.fromBase64() = String(Base64.getDecoder().decode(this))
+
+/**
+ * Shortcut to convert any Base64-String back to its ByteArray representation.
+ * @return the ByteArray representation or throws an exception on any error.
+ */
+fun String.fromBase64ToByteArray() = Base64.getDecoder().decode(this)
+
+/**
+ * Shortcut to convert any Base64-String back to its ByteArray representation.
+ * @return the ByteArray representation or null on any error.
+ */
+fun String.fromBase64ToByteArrayOrNull() = tryOrNull { Base64.getDecoder().decode(this) }
+
+/**
+ * Shortcut to convert any Base64-String back to its String representation.
+ * @return the String representation or null on any error.
+ */
+fun String.fromBase64OrNull() = tryOrNull { String(Base64.getDecoder().decode(this)) }
