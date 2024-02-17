@@ -1,6 +1,6 @@
 package file
 
-import ResultOf2
+import kotnexlib.ResultOf2
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream

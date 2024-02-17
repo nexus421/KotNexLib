@@ -1,3 +1,5 @@
+package kotnexlib
+
 /**
  * This gets the name of the current Class.
  * I use this for my Logs. So I always have an identical TAG to use

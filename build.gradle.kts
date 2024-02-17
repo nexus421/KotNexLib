@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "1.15.0"
+version = "2.0.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -14,7 +14,6 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-//    implementation("com.google.crypto.tink:tink:1.11.0")
 }
 
 kotlin {

@@ -1,6 +1,6 @@
 package file
 
-import ifNull
+import kotnexlib.ifNull
 import java.io.File
 
 /**

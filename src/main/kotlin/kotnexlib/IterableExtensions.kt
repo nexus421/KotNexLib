@@ -1,4 +1,4 @@
-
+package kotnexlib
 typealias LastElement = Boolean
 
 /**

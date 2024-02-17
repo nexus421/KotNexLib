@@ -1,3 +1,5 @@
+package kotnexlib
+
 import java.io.File
 
 /**
@@ -41,7 +43,7 @@ object SystemProperties {
     /**
      * Sequence used by operating system to separate lines in text files
      */
-    fun lineSeperator(): String = System.getProperty("line.separator")
+    fun lineSeparator(): String = System.getProperty("line.separator")
 
     /**
      * JRE Version number

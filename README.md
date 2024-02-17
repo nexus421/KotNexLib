@@ -15,9 +15,12 @@ Examples:
 - Different new contains-functions for String
 - Create random Strings with eas through getRandomString()
 - function to measure time including a return value. See measureTime { ... }
+- runsAsJar to check if you are inside an JAR or the IDE
 - and many more...
 
 If you have any additional useful features or wishes, tell me!
+
+Warning: Breaking Changes with 2.0.0. Cleaned the folder structure. You may need to re-import some methods.
 
 ## Gradle Integration
 
@@ -28,7 +31,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
     }
 
     dependencies {
-        implementation ("com.github.nexus421:KotNexLib:1.14.0")
+        implementation ("com.github.nexus421:KotNexLib:2.0.0")
     }
 
 See releases for other versions.

@@ -1,9 +1,5 @@
 package kotnexlib
 
-import ResultTimeMeasure
-import ifFalse
-import ifTrue
-import measureTime
 import kotlin.concurrent.thread
 import kotlin.math.pow
 import kotlin.properties.Delegates

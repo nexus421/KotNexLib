@@ -1,3 +1,5 @@
+package kotnexlib
+
 /**
  * Executes doThis if this Boolean is ture. Returns this again
  */

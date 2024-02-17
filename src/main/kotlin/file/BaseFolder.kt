@@ -1,6 +1,6 @@
 package file
 
-import ifTrue
+import kotnexlib.ifTrue
 import java.io.File
 
 /**

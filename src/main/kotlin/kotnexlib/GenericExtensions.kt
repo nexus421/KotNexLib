@@ -1,3 +1,5 @@
+package kotnexlib
+
 /**
  * Replacement for if/else.
  * Use this to check if a variable is null or not and return something.

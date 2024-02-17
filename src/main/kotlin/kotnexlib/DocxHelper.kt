@@ -1,8 +1,9 @@
 package kotnexlib
 
-import ResultOf2
+import org.jetbrains.annotations.ApiStatus.Experimental
 import java.io.File
 
+@Experimental
 object DocxHelper {
 
     /**
@@ -74,8 +75,9 @@ object DocxHelper {
         processBuilder.start().apply {
             val code = waitFor()
             val executionSucceeded = code == 0
-            if (executionSucceeded.not()) return false
+            if (executionSucceeded.not()) return ResultOf2.Failure(-1)
         }
+        return ResultOf2.Success(Unit)
     }
 
 
@@ -104,5 +106,6 @@ object DocxHelper {
 
         return true
     }
+
 
 }

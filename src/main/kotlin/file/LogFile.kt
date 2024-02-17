@@ -1,7 +1,7 @@
 package file
 
-import ifNull
-import withNewLine
+import kotnexlib.ifNull
+import kotnexlib.withNewLine
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*

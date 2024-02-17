@@ -1,3 +1,5 @@
+package kotnexlib
+
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.io.ByteArrayInputStream

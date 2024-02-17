@@ -5,5 +5,5 @@ package kotnexlib
  * You may use this to detect if you are in a development environment.
  * Example: JARs run on productive. Development runs the classes through IDE
  */
-fun Any.runsAsJar() =
-    (this::class.java.getResource(this.javaClass.simpleName + ".class")?.toString()?.startsWith("file"))?.not() ?: false
+fun runsAsJar(any: Any) =
+    (any::class.java.getResource(any.javaClass.simpleName + ".class")?.toString()?.startsWith("file"))?.not() ?: false
