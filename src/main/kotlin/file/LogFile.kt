@@ -17,7 +17,7 @@ import java.util.*
 open class LogFile(
     format: String = "dd.MM.yyyy HH:mm",
     baseFolder: BaseFolder? = null,
-    private val logSizeSettings: LogSizeSettings? = LogSizeSettings(),
+    private val logSizeSettings: LogSizeSettings? = LogSizeSettings(baseFolder = baseFolder),
     printInfo: Boolean = true
 ) {
 
