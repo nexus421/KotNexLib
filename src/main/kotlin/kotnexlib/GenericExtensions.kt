@@ -1,5 +1,8 @@
 package kotnexlib
 
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+
 /**
  * Replacement for if/else.
  * Use this to check if a variable is null or not and return something.
@@ -92,3 +95,29 @@ inline fun <T, K> K?.tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, 
         null
     }
 }
+
+/**
+ * Use this function to get all subclasses from the given sealed class.
+ *
+ *
+ * Example:
+ * fun main() {
+ *     val classes = getAllSealedSubclassesFrom(Test::class)
+ * }
+ *
+ * sealed class Test {
+ *     class A(s: String): Test()
+ *     data class B(val a: String): Test()
+ *     data object C: Test()
+ *     object D: Test()
+ * }
+ *
+ * Result: All four subclasses from above as list.
+ *
+ * Get objects with [KClass.objectInstance]
+ * Get class with [KClass.primaryConstructor] and then .call(varargs)
+ *
+ * You may cast the result to the expected class.
+ */
+fun <T : Any> getAllSealedSubclassesFrom(c: KClass<T>): List<KClass<T>> =
+    if (c.isSealed) c.nestedClasses.filter { it.isFinal && it.isSubclassOf(c) }.map { it.cast() } else emptyList()
