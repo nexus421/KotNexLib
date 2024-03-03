@@ -361,3 +361,11 @@ fun String.fromBase64ToByteArrayOrNull() = tryOrNull { Base64.getDecoder().decod
  * @return the String representation or null on any error.
  */
 fun String.fromBase64OrNull() = tryOrNull { String(Base64.getDecoder().decode(this)) }
+
+/**
+ * Adds [separator] after each character from this string.
+ * With " " separator:
+ * input = "abcd"
+ * output = "a b c d"
+ */
+fun String.splitEachCharBy(separator: String = " ") = toCharArray().joinToString(separator)

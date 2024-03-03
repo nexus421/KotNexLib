@@ -66,3 +66,13 @@ fun File.zipFiles(folderToStoreZip: File, zipName: String = "$name.zip"): Result
         ResultOf2.Success(zipFile)
     }
 }
+
+/**
+ * Use this file within [file]. Afterward the file will be deleted.
+ */
+fun <T> File.useAndDelete(file: File.() -> T): T {
+    val result = file()
+    delete()
+    return result
+}
+
