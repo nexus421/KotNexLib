@@ -13,20 +13,34 @@ import java.util.*
  * @param baseFolder for logfile. If null, this File will be created at the execution path
  * @param logSizeSettings for custom Log settings
  * @param printInfo if you don't want to print the information to stdout, set this to false.
+ * @param logfileName name of the logfile
  */
 open class LogFile(
     format: String = "dd.MM.yyyy HH:mm",
-    baseFolder: BaseFolder? = null,
-    private val logSizeSettings: LogSizeSettings? = LogSizeSettings(baseFolder = baseFolder),
+    baseFolder: File? = null,
+    private val logfileName: String = "logfile.log",
+    private val logSizeSettings: LogSizeSettings? = LogSizeSettings(
+        baseFolder = baseFolder,
+        oldLogFileName = "old_$logfileName"
+    ),
     printInfo: Boolean = true
 ) {
 
-    val logFile = baseFolder?.baseFolder.ifNull(isNull = {
-        File("logfile.log")
-    }) {
-        File(this, "logfile.log")
-    }
-    val sdf = SimpleDateFormat(format)
+    constructor(
+        format: String = "dd.MM.yyyy HH:mm",
+        baseFolder: BaseFolder? = null,
+        logfileName: String = "logfile.log",
+        logSizeSettings: LogSizeSettings? = LogSizeSettings(
+            baseFolder = baseFolder?.baseFolder,
+            oldLogFileName = "old_$logfileName"
+        ),
+        printInfo: Boolean = true
+    ) : this(format, baseFolder?.baseFolder, logfileName, logSizeSettings, printInfo)
+
+    val logFile = baseFolder.ifNull(isNull = {
+        File(logfileName)
+    }) { File(this, logfileName) }
+    private val sdf = SimpleDateFormat(format)
 
     init {
         if (logFile.exists().not()) {
@@ -50,7 +64,7 @@ open class LogFile(
      */
     @Synchronized
     fun copyLogToOldAndClearIfFull() {
-        if(logSizeSettings == null) {
+        if (logSizeSettings == null) {
             writeLog("Can't check log file size because LogSizeSettings is null. Check constructor if you to use this method.")
             return
         }
@@ -87,7 +101,10 @@ open class LogFile(
  * @param maxSizeInBytes max size of your logfile. If this is reached, everything will be moved to [oldLogFileName]
  * @param oldLogFileName Name of the file where all logs will be moved, if [maxSizeInBytes] is reached
  */
-class LogSizeSettings(val maxSizeInBytes: Long = 2_000_000, oldLogFileName: String = "oldLog.log", val baseFolder: BaseFolder? = null) {
-
-    val oldLogFile = if(baseFolder == null) File(oldLogFileName) else File(baseFolder.baseFolder, oldLogFileName)
+class LogSizeSettings(
+    val maxSizeInBytes: Long = 2_000_000,
+    oldLogFileName: String = "oldLog.log",
+    val baseFolder: File? = null
+) {
+    val oldLogFile = if (baseFolder == null) File(oldLogFileName) else File(baseFolder, oldLogFileName)
 }

@@ -9,6 +9,7 @@ Examples:
 - Easy hash any String with String.hash()
 - Encrypt/Decrypt any String with String.decrypt() and String.encrypt()
 - Conversions from and to Date/Calendar/LocalDate/LocalTime/LocalDateTime
+- Compress/Decompress any String with ease
 - Basic folder and file-management for Desktop/Server including a basic logging and config file handling. See
   BaseFolder, Logfile and ConfigFile
 - ResultOf-Variants for better State/Error-Handling like success/error.
@@ -31,7 +32,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
     }
 
     dependencies {
-        implementation ("com.github.nexus421:KotNexLib:2.0.0")
+        implementation ("com.github.nexus421:KotNexLib:2.1.0")
     }
 
 See releases for other versions.

@@ -81,6 +81,21 @@ fun <T : Any> Collection<T>.handleSizes(): IterableSize<T> {
 }
 
 /**
+ * Iterates over a list and searches with [find] for an inner object inside this list.
+ * You may use this to find an object inside a list inside a list: List<List<Any>> --> Would return Any?
+ *
+ * @return the first match [find] found or null if no mach was found.
+ */
+inline fun <T, K> Iterable<T>.findInner(find: (T) -> K?): K? {
+    forEach {
+        val result = find(it)
+        if (result != null) return result
+    }
+    return null
+}
+
+
+/**
  * Manage the size-states from any collection through [handleSizes]
  */
 sealed interface IterableSize<I> {

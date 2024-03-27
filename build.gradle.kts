@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "1.9.23"
     id("org.jetbrains.dokka") version "1.9.10"
     `maven-publish`
 }
 
 group = "com.github.nexus421"
-version = "2.0.0"
+version = "2.1.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     implementation(kotlin("reflect"))
 }
 
