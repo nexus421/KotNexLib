@@ -1,5 +1,6 @@
 package file
 
+import kotnexlib.getCurrentClassAndMethodName
 import kotnexlib.ifNull
 import kotnexlib.withNewLine
 import java.io.File
@@ -23,7 +24,7 @@ open class LogFile(
         baseFolder = baseFolder,
         oldLogFileName = "old_$logfileName"
     ),
-    printInfo: Boolean = true
+    private val printInfo: Boolean = true
 ) {
 
     constructor(
@@ -39,8 +40,11 @@ open class LogFile(
 
     val logFile = baseFolder.ifNull(isNull = {
         File(logfileName)
-    }) { File(this, logfileName) }
-    private val sdf = SimpleDateFormat(format)
+    }) {
+        mkdirs()
+        File(this, logfileName)
+    }
+    val sdf = SimpleDateFormat(format)
 
     init {
         if (logFile.exists().not()) {
@@ -48,28 +52,23 @@ open class LogFile(
             else writeLog("Error creating logfile at ${logFile.absolutePath}", printToStdout = printInfo)
         } else println("Logfile available at ${logFile.absolutePath}", printInfo)
 
-        if (logSizeSettings != null) {
-            if (logFile.length() > logSizeSettings.maxSizeInBytes) {
-                if (logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
-                logFile.writeText("")
-            }
-        }
+        copyLogToOldAndClearIfFull()
     }
 
     /**
      * Use this method if [LogSizeSettings] is not null and you want to check the logs file size.
      * If the max file size is reached, the complete log-text will be moved to [LogSizeSettings.oldLogFile] and [logFile] will be cleared.
      *
-     * Log-size will be always checked on init
+     * Log-size will always be checked on init.
      */
     @Synchronized
     fun copyLogToOldAndClearIfFull() {
         if (logSizeSettings == null) {
-            writeLog("Can't check log file size because LogSizeSettings is null. Check constructor if you to use this method.")
+            if (printInfo) println("Can't check log file size because LogSizeSettings is null. Check constructor if you want to use this method.")
             return
         }
         if (logFile.length() > logSizeSettings.maxSizeInBytes) {
-            println("Log is full. Move and clear log.")
+            if (printInfo) println("Log is full. Move and clear log.")
             if (logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
             logFile.writeText("Copied full log to ${logSizeSettings.oldLogFile.absolutePath} and cleared this one.")
         }
@@ -91,6 +90,38 @@ open class LogFile(
             else println(msgToLog)
         }
         logFile.appendText(msgToLog.withNewLine())
+    }
+
+    /**
+     * Simple example for a log, including called class and method name.
+     * This will append each call to the [logFile] with the current time. This method is also synchronized.
+     *
+     * @param msg Message which should be written
+     * @param t Any throwable (optional) which will be appended with a new line to [msg] if not null with [Throwable.stackTraceToString]
+     * @param printToStdout if true, this log will also printed to the standard output [println]
+     */
+    inline fun Any.writeLogWithClassAndMethod(msg: String, t: Throwable? = null, printToStdout: Boolean = true) {
+        val callingClassAndMethod =
+            getCurrentClassAndMethodName()?.let { "[${it.className}.${it.methodName}]" } ?: "[Err]"
+        val msgToLog =
+            "${sdf.format(Date())} $callingClassAndMethod -> $msg${if (t != null) "\n" + t.stackTraceToString() else ""}"
+        if (printToStdout) {
+            if (t != null) System.err.println(msgToLog)
+            else println(msgToLog)
+        }
+        writeToLogFileDirectly(msgToLog.withNewLine())
+    }
+
+    @Synchronized
+    fun writeToLogFileDirectly(string: String) = logFile.appendText(string)
+
+    /**
+     * Adds a simple log line to the file without any additions
+     */
+    @Synchronized
+    fun plainLog(msg: String, printToStdout: Boolean = true) {
+        if (printToStdout) println(msg)
+        logFile.appendText(msg.withNewLine())
     }
 
 }

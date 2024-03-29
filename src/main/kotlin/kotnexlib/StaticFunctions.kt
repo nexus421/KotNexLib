@@ -107,4 +107,22 @@ suspend fun <T> retryOnErrorOrThrow(
     } else throw t
 }
 
+/**
+ * Returns the name from the current executed method.
+ * Therefore it requires the "inline" parameter"
+ */
+inline fun getCurrentMethodName() = StackWalker.getInstance().walk { it.findFirst().orElse(null)?.methodName }
 
+/**
+ * Returns the current class name and the method name it is running inside.
+ *
+ * If one of the names would be null it will return null.
+ */
+inline fun Any.getCurrentClassAndMethodName(): ClassAndMethod? {
+    val className = this::class.simpleName ?: return null
+    val methodName = getCurrentMethodName() ?: return null
+
+    return ClassAndMethod(className, methodName)
+}
+
+data class ClassAndMethod(val className: String, val methodName: String)
