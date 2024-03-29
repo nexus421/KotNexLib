@@ -32,7 +32,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
     }
 
     dependencies {
-        implementation ("com.github.nexus421:KotNexLib:2.1.0")
+        implementation ("com.github.nexus421:KotNexLib:2.2.0")
     }
 
 See releases for other versions.
