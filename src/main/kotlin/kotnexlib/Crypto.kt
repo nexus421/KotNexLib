@@ -43,7 +43,7 @@ fun getIVSecureRandom(algorithm: String = "AES"): IvParameterSpec? = tryOrNull({
 fun generateSecureRandom(size: Int) = ByteArray(size).apply { SecureRandom.getInstanceStrong().nextBytes(this) }
 
 /**
- * Encrypt this String with a given [secretKey] and a given [ivParameterSpec].
+ * Encrypt this String with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
  *
  * [ivParameterSpec] is very important to prevent dictionary attacks.
  * Error will be printed to StdOut.
@@ -64,7 +64,7 @@ fun String.encryptWithAES(secretKey: SecretKey, ivParameterSpec: IvParameterSpec
     }
 
 /**
- * Decrypt this String with a given [secretKey] and a given [ivParameterSpec].
+ * Decrypt this String with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
  *
  * You need the same [secretKey] and [ivParameterSpec] that were used while encryption!
  * Error will be printed to StdOut.
@@ -92,7 +92,7 @@ fun String.decryptWithAES(
 /**
  * This method should help you to easily encrypt this String with a random secure key.
  *
- * This String will be encrypted with AES and a 256-Bit strong random key.
+ * This String will be encrypted with AES and a 256-Bit strong random key with AES/CBC/PKCS5Padding.
  *
  * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
  *
@@ -109,7 +109,7 @@ fun String.encryptWithAesHelper(compress: Boolean = false): AesEncryption? {
 /**
  * This method should help you to easily encrypt this String with a password.
  *
- * This String will be encrypted with AES and a 256-Bit strong key.
+ * This String will be encrypted with AES and a 256-Bit strong key with AES/CBC/PKCS5Padding.
  *
  * @param password to encrypt the String with. This has to be kept as a secret!
  * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 8 Byte array.
@@ -161,12 +161,55 @@ data class AesEncryption(
     fun decrypt() = encryptedText.decryptWithAES(key, ivParameterSpec)
 }
 
+/**
+ * Encrypts this String with AES/ECB/PKCS5Padding with the given [password].
+ * Note: This is not as secure as [encryptWithAES] but simpler. Dictionary attacks are possible.
+ *
+ * @param password the password this String will be encrypted. Length must be 16 or 32!
+ * @param compress if set to true this String will be compressed first and encrypted afterward.
+ * @param onError will be called on any thrown exception. Default: Prints to stacktrace
+ *
+ * @return the encrypted string as Base64 or null on any error.
+ */
+fun String.encryptWithAesAndPassword(
+    password: String,
+    compress: Boolean = false,
+    onError: (Throwable) -> Unit = { it.printStackTrace() }
+) = tryOrNull(onError = onError) {
+    if (password.length == 16 || password.length == 32) throw IllegalStateException("Password must be a length of 16 or 32!")
+    val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
+        init(Cipher.ENCRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
+    }
+    cipher.doFinal((if (compress) compress() else this)!!.toByteArray()).toBase64()
+}
+
+/**
+ * Decrypts this String with the given [password] which was encrypted with AES/ECB/PKCS5Padding.
+ *
+ * @param password to decrypt this String
+ * @param isCompressed if set to true this String will be compressed first and encrypted afterward.
+ * @param onError will be called on any thrown exception. Default: Prints to stacktrace
+ *
+ * @return the decrypted string or null on any error.
+ */
+fun String.decryptWithAesAndPassword(
+    password: String,
+    isCompressed: Boolean = false,
+    onError: (Throwable) -> Unit = { it.printStackTrace() }
+) = tryOrNull(onError = onError) {
+    if (password.length == 16 || password.length == 32) throw IllegalStateException("Password must be a length of 16 or 32!")
+    val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
+        init(Cipher.DECRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
+    }
+    val decrypted = String(cipher.doFinal(fromBase64ToByteArray()), Charsets.UTF_8)
+
+    if (isCompressed) decompress() else decrypted
+}
+
 fun main() {
-    val result = "Heute ist ein schöner Tag.".encryptWithAesHelper() ?: return
+    val result = "Heute ist ein schöner Tag.".encryptWithAesAndPassword("1121123412341234") ?: return
     println(result)
-    println(result.encryptedText.decryptWithAES(generateSecureAesKeyFromPassword("Bananarama", ByteArray(8) {
-        1.toByte()
-    }), result.ivParameterSpec))
+    println(result.decryptWithAesAndPassword("1121123412341234"))
 
 }
 
