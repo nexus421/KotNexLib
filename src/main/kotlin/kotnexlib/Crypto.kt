@@ -181,7 +181,7 @@ fun String.encryptWithAesAndPassword(
     compress: Boolean = false,
     onError: (Throwable) -> Unit = { it.printStackTrace() }
 ) = tryOrNull(onError = onError) {
-    if (password.length == 16 || password.length == 32) throw IllegalStateException("Password must be a length of 16 or 32!")
+    if (password.length != 16 && password.length != 32) throw IllegalStateException("The password must be of a length of 16 or 32 characters!")
     val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
         init(Cipher.ENCRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
     }
@@ -202,20 +202,13 @@ fun String.decryptWithAesAndPassword(
     isCompressed: Boolean = false,
     onError: (Throwable) -> Unit = { it.printStackTrace() }
 ) = tryOrNull(onError = onError) {
-    if (password.length == 16 || password.length == 32) throw IllegalStateException("Password must be a length of 16 or 32!")
+    if (password.length != 16 && password.length != 32) throw IllegalStateException("The password must be of a length of 16 or 32 characters!")
     val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
         init(Cipher.DECRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
     }
     val decrypted = String(cipher.doFinal(fromBase64ToByteArray()), Charsets.UTF_8)
 
     if (isCompressed) decompress() else decrypted
-}
-
-fun main() {
-    val result = "Heute ist ein schöner Tag.".encryptWithAesAndPassword("1121123412341234") ?: return
-    println(result)
-    println(result.decryptWithAesAndPassword("1121123412341234"))
-
 }
 
 /**
