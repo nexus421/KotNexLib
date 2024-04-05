@@ -53,15 +53,18 @@ fun generateSecureRandom(size: Int) = ByteArray(size).apply { SecureRandom.getIn
  * @param secretKey Key for encryption
  * @param ivParameterSpec iv for randomness during generation
  * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
+ * @param onError will be called on any thrown exception. Default: Prints to stacktrace
  *
  * @return returns the encrypted String as base64 or null on any error.
  */
-fun String.encryptWithAES(secretKey: SecretKey, ivParameterSpec: IvParameterSpec, compress: Boolean = false): String? =
-    tryOrNull(onError = { it.printStackTrace() }) {
-        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)
-        return@tryOrNull cipher.doFinal((if (compress) compress() else this)!!.toByteArray()).toBase64()
-    }
+fun String.encryptWithAES(
+    secretKey: SecretKey, ivParameterSpec: IvParameterSpec, compress: Boolean = false,
+    onError: (Throwable) -> Unit = { it.printStackTrace() }
+) = tryOrNull(onError = onError) {
+    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)
+    return@tryOrNull cipher.doFinal((if (compress) compress() else this)!!.toByteArray()).toBase64()
+}
 
 /**
  * Decrypt this String with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
@@ -72,16 +75,16 @@ fun String.encryptWithAES(secretKey: SecretKey, ivParameterSpec: IvParameterSpec
  * @param secretKey Key for encryption
  * @param ivParameterSpec iv for randomness during generation
  * @param isCompressed if set to true, this String will be first decrypted and decompressed afterward. Use this if you encrypted with compression.
+ * @param onError will be called on any thrown exception. Default: Prints to stacktrace
  *
  * @return returns the encrypted String as base64 or null on any error.
  */
 fun String.decryptWithAES(
     secretKey: SecretKey,
     ivParameterSpec: IvParameterSpec,
-    isCompressed: Boolean = false
-): String? = tryOrNull(onError = {
-    it.printStackTrace()
-}) {
+    isCompressed: Boolean = false,
+    onError: (Throwable) -> Unit = { it.printStackTrace() }
+) = tryOrNull(onError = onError) {
     val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
     cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)
     val decrypted = String(cipher.doFinal(fromBase64ToByteArray()), Charsets.UTF_8)
@@ -115,17 +118,19 @@ fun String.encryptWithAesHelper(compress: Boolean = false): AesEncryption? {
  * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 8 Byte array.
  * You should not use the default implementation here. Generate a salt one time and store it to easily reuse it again.
  * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
+ * @param onError will be called on any thrown exception. Default: Prints to stacktrace
  *
  * @return [AesEncryption]. Read the doc there for more information.
  */
 fun String.encryptWithAesAndPasswordHelper(
     password: String,
     salt: ByteArray = generateSecureRandom(8),
-    compress: Boolean = false
+    compress: Boolean = false,
+    onError: (Throwable) -> Unit = { it.printStackTrace() }
 ): AesEncryption? {
     val iv = getIVSecureRandom() ?: return null
     val key = generateSecureAesKeyFromPassword(password, salt)
-    val encrypted = encryptWithAES(key, iv) ?: return null
+    val encrypted = encryptWithAES(key, iv, compress, onError) ?: return null
 
     return AesEncryption(encrypted, compress, key, salt, iv)
 }
