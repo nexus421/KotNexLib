@@ -96,6 +96,7 @@ fun String.decryptWithAES(
  * This method should help you to easily encrypt this String with a random secure key.
  *
  * This String will be encrypted with AES and a 256-Bit strong random key with AES/CBC/PKCS5Padding.
+ * Everything will be randomly generated. Check the result for all used informations used for encryption.
  *
  * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
  *
@@ -113,6 +114,7 @@ fun String.encryptWithAesHelper(compress: Boolean = false): AesEncryption? {
  * This method should help you to easily encrypt this String with a password.
  *
  * This String will be encrypted with AES and a 256-Bit strong key with AES/CBC/PKCS5Padding.
+ * Most will be randomly generated. Check the result for all used informations used for encryption.
  *
  * @param password to encrypt the String with. This has to be kept as a secret!
  * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 8 Byte array.
