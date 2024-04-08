@@ -18,6 +18,7 @@ Examples:
 - Create random Strings with eas through getRandomString()
 - function to measure time including a return value. See measureTime { ... }
 - runsAsJar to check if you are inside an JAR or the IDE
+- Extensions for ObjectBox. Dependencies are not shipped with this library.
 - and many more...
 
 If you have any additional useful features or wishes, tell me!

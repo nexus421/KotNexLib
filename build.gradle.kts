@@ -15,6 +15,8 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     implementation(kotlin("reflect"))
+    compileOnly("io.objectbox:objectbox-kotlin:3.8.0")
+    compileOnly("io.objectbox:objectbox-java:3.8.0")
 }
 
 kotlin {
