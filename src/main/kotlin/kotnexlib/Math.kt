@@ -1,6 +1,5 @@
 package kotnexlib
 
-import kotlin.math.pow
 import kotlin.math.sqrt
 
 object Math {
@@ -32,15 +31,50 @@ object Math {
         var normA = 0.0
         var normB = 0.0
         vectorA.indices.forEach {
-            dotProduct += vectorA[it] * vectorB[it]
-            normA += vectorA[it].pow(2)
-            normB += vectorB[it].pow(2)
+            val vA = vectorA[it]
+            val vB = vectorB[it]
+            dotProduct += vA * vB
+            normA += vA * vA
+            normB += vB * vB
         }
 
         return dotProduct / (sqrt(normA) * sqrt(normB))
     }
 
+    /**
+     * Normalizes a vector.
+     * It is the caller's responsibility to check whether the vector is already normalized or not!
+     *
+     * @return normalized vector
+     */
+    fun List<Double>.normalizeVector(): List<Double> {
+        var count = 0.0
+        forEach { count += (it * it) }
+        val length = sqrt(count)
+        return map { it / length }
+    }
+
+
+    /**
+     * Checks whether this vector is normalized or not.
+     *
+     * Important: Strictly speaking, the sum should be exactly 1 for it to be considered normalized.
+     * However, thanks to the inaccuracy of floating-point numbers, tiny deviations are still acceptable here.
+     */
+    fun List<Double>.isNormalizedVector(): Boolean {
+        var count = 0.0
+        forEach { count += (it * it) }
+
+        return count < 1.0000009 && count > 0.9999999
+    }
+
+
 }
+
+fun Double.powOfTwo() = this * this
+fun Int.powOfTwo() = this * this
+fun Float.powOfTwo() = this * this
+fun Long.powOfTwo() = this * this
 
 //fun Iterable<Double>.isNormalized(): Boolean {
 //    var sum = 0.0
