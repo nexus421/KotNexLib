@@ -56,3 +56,8 @@ fun Boolean.toGerman(startUpperCase: Boolean = false) =
  */
 fun Boolean.toEnglish(startUpperCase: Boolean = false) =
     if (startUpperCase) if (this) "Yes" else "No" else if (this) "yes" else "no"
+
+/**
+ * Method to use within strings to replace "if (Boolean) "thisText" else "thatText"" with "Boolean.switchText("thisText", "thatText")
+ */
+fun Boolean.switchText(onTrue: String, onFalse: String) = if (this) onTrue else onFalse

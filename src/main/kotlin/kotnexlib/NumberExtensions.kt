@@ -89,3 +89,16 @@ fun Long.toMillisFrom(timeUnit: TimeUnit): Long {
 enum class TimeUnit {
     Day, Hour, Minute, Second
 }
+
+//fun Long.convert(from: ConvertType, to: ConvertType = ConvertType.Byte): Double {
+//    return when (from) {
+//        ConvertType.Byte -> this / to.oneByte
+//        else -> if(to.oneByte >= from.oneByte) this * from.oneByte else this / from.oneByte
+//    }
+//}
+//
+//fun Int.convert(from: ConvertType, to: ConvertType = ConvertType.Byte) = toLong().convert(from, to)
+//
+//enum class ConvertType(val oneByte: Double) {
+//    Byte(1.0), KiloByte(1_000.0), MegaByte(1_000_000.0), GigaByte(1_000_000_000.0), TerraByte(1_000_000_000_000.0),
+//}
