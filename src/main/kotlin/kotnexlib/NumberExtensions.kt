@@ -90,15 +90,42 @@ enum class TimeUnit {
     Day, Hour, Minute, Second
 }
 
-//fun Long.convert(from: ConvertType, to: ConvertType = ConvertType.Byte): Double {
-//    return when (from) {
-//        ConvertType.Byte -> this / to.oneByte
-//        else -> if(to.oneByte >= from.oneByte) this * from.oneByte else this / from.oneByte
-//    }
-//}
-//
-//fun Int.convert(from: ConvertType, to: ConvertType = ConvertType.Byte) = toLong().convert(from, to)
-//
-//enum class ConvertType(val oneByte: Double) {
-//    Byte(1.0), KiloByte(1_000.0), MegaByte(1_000_000.0), GigaByte(1_000_000_000.0), TerraByte(1_000_000_000_000.0),
-//}
+/**
+ * Converts this number to a specific storage unit.
+ *
+ * Example: 1 Byte == 1_000_000 Megabyte use ist like 1.convert(ConvertionType.Byte, ConvertionType.MegaByte)
+ * 1 MegaByte == 0.001 Kilobyte use ist like 1.convert(ConvertionType.MegaByte, ConvertionType.KiloByte)
+ *
+ * @param from this is the current storage unit this value is
+ * @param to this is the destination storage unit
+ *
+ * @return the converted result as Double. If [from] is smaller than [to] it will always be > 0 else < 0
+ */
+fun Long.convert(from: ConvertType, to: ConvertType = ConvertType.Byte): Double {
+    if (from == to) return toDouble()
+    if (to == ConvertType.Byte) return this * from.bytes.toDouble()
+    return when (from) {
+        ConvertType.Byte -> this / to.bytes.toDouble()
+        else -> {
+            val byte = this * from.bytes
+            byte / to.bytes.toDouble()
+        }
+    }
+}
+
+/**
+ * Converts this number to a specific storage unit.
+ *
+ * Example: 1 Byte == 1_000_000 Megabyte use ist like 1.convert(ConvertionType.Byte, ConvertionType.MegaByte)
+ * 1 MegaByte == 0.001 Kilobyte use ist like 1.convert(ConvertionType.MegaByte, ConvertionType.KiloByte)
+ *
+ * @param from this is the current storage unit this value is
+ * @param to this is the destination storage unit
+ *
+ * @return the converted result as Double. If [from] is smaller than [to] it will always be > 0 else < 0
+ */
+fun Int.convert(from: ConvertType, to: ConvertType = ConvertType.Byte) = toLong().convert(from, to)
+
+enum class ConvertType(val bytes: Long) {
+    Byte(1), KiloByte(1_000), MegaByte(1_000_000), GigaByte(1_000_000_000), TerraByte(1_000_000_000_000),
+}
