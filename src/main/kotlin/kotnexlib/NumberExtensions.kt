@@ -60,14 +60,7 @@ fun Double.isBetween(lower: Double, higher: Double) = lower < this && this < hig
  *
  * @param timeUnit the Unit this Integer represents
  */
-fun Int.toMillisFrom(timeUnit: TimeUnit): Long {
-    return when (timeUnit) {
-        TimeUnit.Day -> this.toLong() * 24 * 60 * 60 * 1000
-        TimeUnit.Hour -> this.toLong() * 60 * 60 * 1000
-        TimeUnit.Minute -> this.toLong() * 60 * 1000
-        TimeUnit.Second -> this.toLong() * 1000
-    }
-}
+fun Int.toMillisFrom(timeUnit: TimeUnit) = toLong().toMillisFrom(timeUnit)
 
 /**
  * Converts this through [TimeUnit] to milliseconds.
