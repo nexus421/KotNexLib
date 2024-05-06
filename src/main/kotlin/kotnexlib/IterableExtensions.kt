@@ -115,3 +115,31 @@ sealed interface IterableSize<I> {
      */
     data class HasMany<T>(val entries: Collection<T>) : IterableSize<T>
 }
+
+/**
+ * Removes [thisEntry] and inserts it at [toIndex].
+ * If this list does not contain [thisEntry] or [toIndex] is out of bound, nothing will happen.
+ *
+ * @param thisEntry element to move inside this list.
+ * @param toIndex new index to insert this element
+ */
+fun <T> MutableList<T>.move(thisEntry: T, toIndex: Int) {
+    if (contains(thisEntry).not() || toIndex >= size) return
+    remove(thisEntry)
+    add(toIndex, thisEntry)
+}
+
+/**
+ * Removes [thisEntry] and inserts it at [toIndex].
+ * If [toIndex] is out of bound, nothing will happen.
+ * If this list does not contain [thisEntry] it will be inserted at [toIndex].
+ *
+ * @param thisEntry element to move inside this list.
+ * @param toIndex new index to insert this element
+ */
+fun <T> MutableList<T>.moveOrAdd(thisEntry: T, toIndex: Int) {
+    if (toIndex >= size) return
+    if (contains(thisEntry)) remove(thisEntry)
+    add(toIndex, thisEntry)
+}
+
