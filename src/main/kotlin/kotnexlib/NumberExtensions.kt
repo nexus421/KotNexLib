@@ -94,6 +94,7 @@ enum class TimeUnit {
  *
  * @return the converted result as Double. If [from] is smaller than [to] it will always be > 0 else < 0
  */
+@ExperimentalStdlibApi
 fun Long.convert(from: ConvertType, to: ConvertType = ConvertType.Byte): Double {
     if (from == to) return toDouble()
     if (to == ConvertType.Byte) return this * from.bytes.toDouble()
@@ -117,6 +118,7 @@ fun Long.convert(from: ConvertType, to: ConvertType = ConvertType.Byte): Double 
  *
  * @return the converted result as Double. If [from] is smaller than [to] it will always be > 0 else < 0
  */
+@OptIn(ExperimentalStdlibApi::class)
 fun Int.convert(from: ConvertType, to: ConvertType = ConvertType.Byte) = toLong().convert(from, to)
 
 enum class ConvertType(val bytes: Long) {

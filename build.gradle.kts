@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
-    id("org.jetbrains.dokka") version "1.9.10"
+    kotlin("jvm") version "2.0.0"
+    id("org.jetbrains.dokka") version "1.9.20"
     `maven-publish`
 }
 
 group = "com.github.nexus421"
-version = "2.5.0"
+version = "2.6.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -13,10 +13,10 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation(kotlin("reflect"))
-    compileOnly("io.objectbox:objectbox-kotlin:3.8.0")
-    compileOnly("io.objectbox:objectbox-java:3.8.0")
+    compileOnly("io.objectbox:objectbox-kotlin:4.0.0")
+    compileOnly("io.objectbox:objectbox-java:4.0.0")
 }
 
 kotlin {
