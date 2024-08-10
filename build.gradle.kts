@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.10"
     id("org.jetbrains.dokka") version "1.9.20"
     `maven-publish`
 }
 
 group = "com.github.nexus421"
-version = "2.6.0"
+version = "2.7.0"
 val globalVersion = version.toString()
 
 repositories {
