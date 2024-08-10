@@ -48,7 +48,10 @@ open class LogFile(
 
     init {
         if (logFile.exists().not()) {
-            if (logFile.createNewFile()) writeLog("Logfile created at ${logFile.absolutePath}")
+            if (logFile.createNewFile()) writeLog(
+                "Logfile created at ${logFile.absolutePath}",
+                printToStdout = printInfo
+            )
             else writeLog("Error creating logfile at ${logFile.absolutePath}", printToStdout = printInfo)
         } else println("Logfile available at ${logFile.absolutePath}", printInfo)
 
