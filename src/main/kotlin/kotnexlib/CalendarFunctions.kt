@@ -94,7 +94,10 @@ fun LocalDate.getAsDate(): Date = Date.from(atStartOfDay(ZoneId.systemDefault())
 
 fun LocalTime.getAsDate(): Date = Date.from(atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant())
 
+@Deprecated("Renamed", ReplaceWith("LocalDateTime.toDate()"))
 fun LocalDateTime.getAsDate(): Date = Date.from(atZone(ZoneId.systemDefault()).toInstant())
+fun LocalDateTime.toDate(): Date = Date.from(atZone(ZoneId.systemDefault()).toInstant())
+
 
 fun Calendar.toLocalTime(): LocalTime = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
 fun Calendar.toLocalDate(): LocalDate = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
