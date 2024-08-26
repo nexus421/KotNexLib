@@ -48,7 +48,7 @@ fun String.hash(hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA_256) = MessageD
 /**
  * Possible Hash-Algorithms
  *
- * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work on all Java platforms. Amazon Corretto does also support SHA-384 and SHA-512 this!
+ * WARNING: Only MD5, SHA-1 and SHA-256 are guaranteed to work on all Java platforms. Amazon Corretto does also support SHA-384 and SHA-512!
  * Refer: https://docs.oracle.com/javase/7/docs/api/java/security/MessageDigest.html
  * Amazon Corretto: https://github.com/corretto/amazon-corretto-crypto-provider/blob/main/README.md
  */
@@ -60,12 +60,8 @@ enum class HashAlgorithm(val algorithm: String) {
     SHA_512("SHA-512"),
 }
 
-inline fun String?.ifNullOrBlank(action: () -> Unit) {
+inline fun String?.ifNullOrBlankDo(action: () -> Unit) {
     if(isNullOrBlank()) action()
-}
-
-inline fun String?.ifNotNullOrBlank(action: String.() -> Unit) {
-    if(!isNullOrBlank()) action()
 }
 
 fun String?.isNotNullOrBlank() = !isNullOrBlank()
@@ -99,7 +95,7 @@ fun String.replaceAllMatchingStart(match: Char): String {
  */
 fun String?.embedIfNotNull(before: String = "", after: String = "", fallback: String = "") = if(this == null) fallback else before + this + after
 
-fun String?.isNotNullOrBlank(doThis: (String) -> Unit) {
+inline fun String?.ifNotNullOrBlank(doThis: (String) -> Unit) {
     if (!isNullOrBlank()) doThis(this)
 }
 
@@ -172,21 +168,7 @@ fun String.toDate(pattern: String = "dd.MM.yyyy", fallback: Date) = toDateOrNull
  */
 fun String.toDateOrNull(pattern: String = "dd.MM.yyyy"): Date? {
     val sdf = SimpleDateFormat(pattern, Locale.getDefault())
-    return try {
-        sdf.parse(this)
-    } catch (e: Exception) {
-        null
-    }
-}
-
-@Deprecated("Use toDate with fallback or toDateOrNull")
-fun String.toDate(pattern: String = "dd.MM.yyyy"): Date? {
-    val sdf = SimpleDateFormat(pattern, Locale.getDefault())
-    return try {
-        sdf.parse(this)
-    } catch (e: Exception) {
-        null
-    }
+    return kotnexlib.tryOrNull { sdf.parse(this) }
 }
 
 /**
@@ -264,7 +246,7 @@ fun String.fromBase64() = String(Base64.getDecoder().decode(this))
  * Shortcut to convert any Base64-String back to its ByteArray representation.
  * @return the ByteArray representation or throws an exception on any error.
  */
-fun String.fromBase64ToByteArray() = Base64.getDecoder().decode(this)
+fun String.fromBase64ToByteArray(): ByteArray = Base64.getDecoder().decode(this)
 
 /**
  * Shortcut to convert any Base64-String back to its ByteArray representation.

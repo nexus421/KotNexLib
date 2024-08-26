@@ -94,8 +94,6 @@ fun LocalDate.getAsDate(): Date = Date.from(atStartOfDay(ZoneId.systemDefault())
 
 fun LocalTime.getAsDate(): Date = Date.from(atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant())
 
-@Deprecated("Renamed", ReplaceWith("LocalDateTime.toDate()"))
-fun LocalDateTime.getAsDate(): Date = Date.from(atZone(ZoneId.systemDefault()).toInstant())
 fun LocalDateTime.toDate(): Date = Date.from(atZone(ZoneId.systemDefault()).toInstant())
 
 
@@ -106,6 +104,10 @@ fun Calendar.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstan
 fun Date.toLocalTime(): LocalTime = LocalTime.ofInstant(toInstant(), ZoneId.systemDefault())
 fun Date.toLocalDate(): LocalDate = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault()).toLocalDate()
 fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+
+fun LocalDateTime.format(pattern: String = "dd.MM.yyyy HH:mm"): String = format(DateTimeFormatter.ofPattern(pattern))
+fun LocalDate.format(pattern: String = "dd.MM.yyyy"): String = format(DateTimeFormatter.ofPattern(pattern))
+fun LocalTime.format(pattern: String = "HH:mm"): String = format(DateTimeFormatter.ofPattern(pattern))
 
 /**
  * Adds or subtract [amount] days from the current time.
