@@ -1,8 +1,11 @@
 package kotnexlib
 
+import io.objectbox.Box
 import io.objectbox.query.Query
+import io.objectbox.query.QueryCondition
 
-fun <T> Query<T>.findAndClose(maxLogs: Int): List<T> = use { it.find(0, (maxLogs).toLong()) }
+fun <T> Query<T>.findAndClose(maxLogs: Int? = null): List<T> =
+    use { if (maxLogs == null) it.find() else it.find(0, (maxLogs).toLong()) }
 
 fun <T> Query<T>.findFirstAndClose(): T? = use { it.findFirst() }
 
@@ -38,4 +41,37 @@ fun <T> Query<T>.doForEachPages(
 
     if (closeAtTheEnd) close()
 }
+
+/**
+ * Checks if the Box contains an item that satisfies the given query condition.
+ * The used query will be closed afterward.
+ *
+ * @param queryCondition the query condition to check against the items in the Box
+ * @return true if the Box contains an item that satisfies the query condition, false otherwise
+ */
+fun <T> Box<T>.contains(queryCondition: QueryCondition<T>): Boolean {
+    return query(queryCondition).build().use {
+        it.count() > 0
+    }
+}
+
+
+/**
+ * Returns the first element that matches the given query condition, or null if no elements match.
+ * The used query will be closed afterward.
+ *
+ * @param queryCondition the query condition to match elements against
+ * @return the first matching element, or null if no elements match
+ */
+fun <T> Box<T>.findOrNull(queryCondition: QueryCondition<T>): T? = query(queryCondition).build().findFirstAndClose()
+
+
+/**
+ * Finds all elements in the box that match the given query condition.
+ * The used query will be closed afterward.
+ *
+ * @param queryCondition The query condition to match against.
+ * @return A list of elements that match the query condition.
+ */
+fun <T> Box<T>.findAll(queryCondition: QueryCondition<T>): List<T> = query(queryCondition).build().findAndClose()
 
