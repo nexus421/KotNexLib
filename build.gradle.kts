@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.20"
     id("org.jetbrains.dokka") version "1.9.20"
     `maven-publish`
 }
@@ -17,6 +17,7 @@ dependencies {
     implementation(kotlin("reflect"))
     compileOnly("io.objectbox:objectbox-kotlin:4.0.0")
     compileOnly("io.objectbox:objectbox-java:4.0.0")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 }
 
 kotlin {
