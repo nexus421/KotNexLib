@@ -15,7 +15,7 @@ import kotlinx.serialization.encoding.Encoder
  * class DemoEnumSerializer: EnumAsIntSerializer<DemoEnum>(
  *    "DemoEnum",
  *    { it.id },
- *    { v -> SettingType.entries.first { it.id == v } }
+ *    { v -> DemoEnum.entries.first { it.id == v } }
  * )
  *
  * Important: You need to implement org.jetbrains.kotlinx:kotlinx-serialization-json by yourself!!
@@ -36,3 +36,35 @@ open class EnumAsIntSerializer<T : Enum<*>>(
 
     override fun deserialize(decoder: Decoder): T = deserialize(decoder.decodeInt())
 }
+
+
+/**
+ * A custom serializer for Kotlin's enum classes that serializes the enum values as String.
+ *
+ *
+ * Example usage:
+ * class DemoEnumSerializer: EnumAsIntSerializer<DemoEnum>(
+ *    "DemoEnum",
+ *    { it.id },
+ *    { v -> DemoEnum.entries.first { it.id == v } }
+ * )
+ *
+ * Important: You need to implement org.jetbrains.kotlinx:kotlinx-serialization-json by yourself!!
+ *
+ * @param T the type of the enum being serialized
+ * @param serialName the name of the serial descriptor for the enum
+ * @param serialize a function that converts an enum value to its corresponding String representation
+ * @param deserialize a function that converts a String representation back to its corresponding enum value
+ */
+open class EnumAsStringSerializer<T : Enum<*>>(
+    serialName: String,
+    val serialize: (T) -> String,
+    val deserialize: (String) -> T
+) : KSerializer<T> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: T) = encoder.encodeString(serialize(value))
+
+    override fun deserialize(decoder: Decoder) = deserialize(decoder.decodeString())
+}
+
