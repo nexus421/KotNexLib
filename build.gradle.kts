@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "3.0.0"
+version = "3.1.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -18,6 +18,7 @@ dependencies {
     compileOnly("io.objectbox:objectbox-kotlin:4.0.0")
     compileOnly("io.objectbox:objectbox-java:4.0.0")
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.0")
 }
 
 kotlin {
