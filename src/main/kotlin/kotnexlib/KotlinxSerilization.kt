@@ -43,7 +43,7 @@ open class EnumAsIntSerializer<T : Enum<*>>(
  *
  *
  * Example usage:
- * class DemoEnumSerializer: EnumAsIntSerializer<DemoEnum>(
+ * class DemoEnumSerializer: EnumAsStringSerializer<DemoEnum>(
  *    "DemoEnum",
  *    { it.id },
  *    { v -> DemoEnum.entries.first { it.id == v } }

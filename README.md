@@ -23,7 +23,7 @@ Examples:
 
 If you have any additional useful features or wishes, tell me!
 
-Warning: Breaking Changes with 2.0.0. Cleaned the folder structure. You may need to re-import some methods.
+Warning: Breaking Changes with 2.0.0 and 3.0.0. Cleaned the folder structure. You may need to re-import some methods.
 
 ## Gradle Integration
 
@@ -34,7 +34,7 @@ To integrate KotNexLib into your project using Gradle, add the following depende
     }
 
     dependencies {
-        implementation ("com.github.nexus421:KotNexLib:2.6.0")
+        implementation ("com.github.nexus421:KotNexLib:3.1.0")
     }
 
 See releases for other versions.
