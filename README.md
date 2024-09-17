@@ -1,5 +1,9 @@
 # KotNexLib
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/dce41e84-cd28-49b8-91a7-6649e6890ad2" />
+</p>
+
 Some useful kotlin extensions and classes that I use in nearly all my projects. This can be used in all JVM-Applications
 targeting Java 11 or higher.
 For Android-specific extensions, take a look at my repository "Kotlin-Extensions-Android".
