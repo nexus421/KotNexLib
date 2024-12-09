@@ -143,3 +143,28 @@ fun <T> MutableList<T>.moveOrAdd(thisEntry: T, toIndex: Int) {
     add(toIndex, thisEntry)
 }
 
+/**
+ * Checks if a given element comes before another element in the iteration.
+ *
+ * @param thisT The element to check if it comes before another element.
+ * @param before A function that returns a boolean and determines which element is considered the "other" element.
+ * @return `true` if the element `thisT` comes before the element determined by the `before` function, otherwise `false`.
+ */
+fun <T> Iterable<T>.isBefore(thisT: T, before: (T) -> Boolean): Boolean {
+    val destination = indexOfFirst(before)
+    return indexOf(thisT) < destination
+}
+
+
+/**
+ * Checks if a given element comes after another element in the iteration.
+ *
+ * @param thisT The element to check if it comes after another element.
+ * @param after A function that returns a boolean and determines which element is considered the "other" element.
+ * @return `true` if the element `thisT` comes after the element determined by the `after` function, otherwise `false`.
+ */
+fun <T> Iterable<T>.isAfter(thisT: T, after: (T) -> Boolean): Boolean {
+    val destination = indexOfFirst(after)
+    return indexOf(thisT) > destination
+}
+
