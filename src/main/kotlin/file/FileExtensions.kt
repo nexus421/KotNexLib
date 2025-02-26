@@ -3,6 +3,7 @@ package file
 import kotnexlib.ResultOf2
 import java.io.*
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 /**
@@ -103,6 +104,67 @@ private fun zipFilesRecursive(file: File, zipOut: ZipOutputStream, basePath: Str
     }
 }
 
+/**
+ * Unzips the file represented by this `File` instance into the specified destination folder.
+ * If the `deleteAfterUnzip` flag is set to true, the original zip file will be deleted after the operation.
+ * The `ignoreZipFileCheck` parameter allows skipping validation of whether the file is a ZIP file.
+ *
+ * @param destinationFolder The folder where the contents of the zip file will be extracted. Defaults to a folder
+ *                          in the same directory as the zip file, with the same name as the zip file (without the extension).
+ * @param deleteAfterUnzip  Indicates whether the zip file should be deleted after extraction. Defaults to false.
+ * @param ignoreZipFileCheck If true, skips checking if the file is a valid ZIP file. Use with caution. Defaults to false.
+ * @return [UnzipResult] indicating the success or failure of the operation.
+ */
+fun File.unzipFile(
+    destinationFolder: File = File(parentFile, nameWithoutExtension),
+    deleteAfterUnzip: Boolean = false,
+    ignoreZipFileCheck: Boolean = false
+): UnzipResult {
+    if (isFile.not()) return UnzipResult.Failure("The provided file is not a valid file.")
+    if (ignoreZipFileCheck.not() && isZipFile().not()) return UnzipResult.NotAZipFile
+
+    if (destinationFolder.exists()) destinationFolder.deleteRecursively()
+    if (!destinationFolder.existsDir(createIfNotExist = true)) {
+        return UnzipResult.Failure("Failed to create destination directory: ${destinationFolder.absolutePath}")
+    }
+
+    return try {
+        BufferedInputStream(FileInputStream(this)).use { fileInputStream ->
+            ZipInputStream(fileInputStream).use { zipIn ->
+                var entry: ZipEntry? = zipIn.nextEntry
+
+                while (entry != null) {
+                    val file = File(destinationFolder, entry.name)
+
+                    if (entry.isDirectory) {
+                        if (!file.existsDir(createIfNotExist = true)) {
+                            return UnzipResult.Failure("Failed to create directory: ${file.absolutePath}")
+                        }
+                    } else {
+                        if (!file.parentFile.existsDir(createIfNotExist = true)) {
+                            return UnzipResult.Failure("Failed to create parent directory for file: ${file.absolutePath}")
+                        }
+                        BufferedOutputStream(FileOutputStream(file)).use { output ->
+                            zipIn.copyTo(output)
+                        }
+                    }
+                    zipIn.closeEntry()
+                    entry = zipIn.nextEntry
+                }
+            }
+        }
+        if (deleteAfterUnzip) delete()
+        UnzipResult.Success(destinationFolder)
+    } catch (e: Exception) {
+        UnzipResult.Failure("An error occurred during unzip operation: ${e.message}")
+    }
+}
+
+sealed interface UnzipResult {
+    data class Success(val destinationFolder: File) : UnzipResult
+    data class Failure(val errorMessage: String) : UnzipResult
+    data object NotAZipFile : UnzipResult
+}
 
 /**
  * Use this file within [file]. Afterward the file will be deleted.
@@ -118,4 +180,22 @@ sealed interface ZipResult {
     data class Failure(val error: String) : ZipResult
     data object FolderIsEmpty : ZipResult
 }
+
+/**
+ * Determines if the current file is a valid ZIP file by checking its first four bytes.
+ *
+ * @return true if the file has a ZIP file signature, otherwise false
+ */
+fun File.isZipFile(): Boolean = try {
+    FileInputStream(this).use { fis ->
+        val header = ByteArray(4)
+        val bytesRead = fis.read(header)
+        if (bytesRead == 4) (header[0] == 0x50.toByte() && header[1] == 0x4B.toByte() && header[2] == 0x03.toByte() && header[3] == 0x04.toByte())
+        else false
+    }
+} catch (ignore: Exception) {
+    false
+}
+
+
 
