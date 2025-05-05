@@ -182,7 +182,7 @@ fun String.hexToInt() = Integer.parseInt(this, 16)
  * @param list elements required in this String.
  * @param ignoreCase if true, the strings a compared with ignore case
  */
-fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean {
+fun String.containsAll(list: Iterable<String>, ignoreCase: Boolean = true): Boolean {
     for (element in list) {
         if (contains(element, ignoreCase).not()) return false
     }
@@ -197,9 +197,23 @@ fun String.containsAll(list: List<String>, ignoreCase: Boolean = true): Boolean 
  *
  * @return true, if at least one element from [list] is contained.
  */
-fun String.containsOneOf(list: List<String>, ignoreCase: Boolean = false): Boolean {
+fun String.containsOneOf(list: Iterable<String>, ignoreCase: Boolean = false): Boolean {
     list.forEach {
         if (contains(it, ignoreCase)) return true
+    }
+    return false
+}
+
+/**
+ * Checks if the current string equals any string within the provided list.
+ *
+ * @param list The list of strings to check against.
+ * @param ignoreCase If true, the comparison ignores case differences; false by default.
+ * @return True if the current string equals any string in the list. Otherwise, returns false.
+ */
+fun String?.equalsOneOf(list: Iterable<String?>, ignoreCase: Boolean = false): Boolean {
+    list.forEach {
+        if (equals(it, ignoreCase)) return true
     }
     return false
 }
@@ -213,12 +227,28 @@ fun String.containsOneOf(list: List<String>, ignoreCase: Boolean = false): Boole
  *
  * @return the first matching String from [list] or null
  */
-fun String.containsOneOfAndGet(list: List<String>, ignoreCase: Boolean = false): String? {
+fun String.containsOneOfAndGet(list: Iterable<String>, ignoreCase: Boolean = false): String? {
     list.forEach {
         if (contains(it, ignoreCase)) return it
     }
     return null
 }
+
+/**
+ * Checks if the string equals any value from the provided list and returns the matching value if found.
+ *
+ * @param list The list of strings to compare against.
+ * @param ignoreCase Whether to ignore case during the equality check. Defaults to `false`.
+ * @return The matching value from the list if a match is found, or `null` otherwise.
+ */
+fun String?.equalsOneOfAndGet(list: Iterable<String?>, ignoreCase: Boolean = false): String? {
+    list.forEach {
+        if (equals(it, ignoreCase)) return it
+    }
+    return null
+}
+
+
 
 /**
  * Sets this String to the clipboard of the system.
