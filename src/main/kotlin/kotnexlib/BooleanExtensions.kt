@@ -61,3 +61,18 @@ fun Boolean.toEnglish(startUpperCase: Boolean = false) =
  * Method to use within strings to replace "if (Boolean) "thisText" else "thatText"" with "Boolean.switchText("thisText", "thatText")
  */
 fun Boolean.switchText(onTrue: String, onFalse: String) = if (this) onTrue else onFalse
+
+/**
+ * Switches the execution order of two functions.
+ * If this is true, it will run [run1] first and then [run2].
+ * If this is false, it will run [run2] first and then [run1].
+ */
+inline fun Boolean.switchOrder(run1: () -> Unit, run2: () -> Unit) {
+    if (this) {
+        run1()
+        run2()
+    } else {
+        run2()
+        run1()
+    }
+}

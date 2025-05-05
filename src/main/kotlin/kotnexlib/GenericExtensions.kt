@@ -1,5 +1,6 @@
 package kotnexlib
 
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
@@ -41,6 +42,9 @@ fun <T> T?.default(value: T) = this ?: value
 inline fun <T> tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, tryThis: () -> T?): T? {
     return try {
         tryThis()
+    } catch (ce: CancellationException) {
+        onError?.let { it(ce) }
+        throw ce
     } catch (e: Throwable) {
         onError?.let { it(e) }
         null
@@ -60,6 +64,9 @@ inline fun <T> tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, tryThi
 inline fun <T> tryOrDefault(noinline onError: ((Throwable) -> Unit)? = null, default: T, tryThis: () -> T): T {
     return try {
         tryThis()
+    } catch (ce: CancellationException) {
+        onError?.let { it(ce) }
+        throw ce
     } catch (e: Throwable) {
         onError?.let { it(e) }
         default
@@ -75,6 +82,9 @@ inline fun <T> tryOrDefault(noinline onError: ((Throwable) -> Unit)? = null, def
 inline fun <T, K> K?.tryOrDefault(noinline onError: ((Throwable) -> Unit)? = null, default: T, tryThis: K.() -> T): T {
     return try {
         if (this == null) default else tryThis()
+    } catch (ce: CancellationException) {
+        onError?.let { it(ce) }
+        throw ce
     } catch (e: Throwable) {
         onError?.let { it(e) }
         default
@@ -90,6 +100,9 @@ inline fun <T, K> K?.tryOrDefault(noinline onError: ((Throwable) -> Unit)? = nul
 inline fun <T, K> K?.tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, tryThis: K.() -> T): T? {
     return try {
         if (this == null) null else tryThis()
+    } catch (ce: CancellationException) {
+        onError?.let { it(ce) }
+        throw ce
     } catch (e: Throwable) {
         onError?.let { it(e) }
         null

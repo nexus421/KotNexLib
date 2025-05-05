@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation(kotlin("reflect"))
     compileOnly("io.objectbox:objectbox-kotlin:4.0.0")
     compileOnly("io.objectbox:objectbox-java:4.0.0")
