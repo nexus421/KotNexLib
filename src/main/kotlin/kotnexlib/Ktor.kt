@@ -150,19 +150,37 @@ fun Application.checkApiKey(
             if (shouldIgnoreThisPath) return@intercept
         }
 
-        val apiKey = call.request.headers[apiKeyParameterName]
+        val receivedApiKeyFromHeader = call.request.headers[apiKeyParameterName]
+
+        if (receivedApiKeyFromHeader == null) {
+            logger.warn("API Key Check: Unauthorized - API Key missing in header '$apiKeyParameterName' for path '$calledPath'.")
+            call.respond(HttpStatusCode.Unauthorized, "API Key required.")
+            finish()
+            return@intercept
+        }
 
         //Suchen des API-Keys aus dem Header in den erlaubten API-Keys
-        val foundApiKey = allowedApiKeys.find { it.key == apiKey }
+        val foundApiKey = allowedApiKeys.find { it.key == receivedApiKeyFromHeader }
 
         //Der angegebene API-Key existiert nicht in unserer Liste. Ist also immer ungültig.
         if (foundApiKey == null) {
+            logger.warn(
+                "API Key Check: Unauthorized - Invalid API Key provided ('${
+                    receivedApiKeyFromHeader.coverString(
+                        5,
+                        20
+                    )
+                }') for path '$calledPath'."
+            )
             call.respond(HttpStatusCode.Unauthorized)
             finish()
             return@intercept
         }
 
-        if (foundApiKey.path == null) return@intercept //Der API-Key hat auf alles Zugriff. Passt und weiter.
+        if (foundApiKey.path == null) {
+            logger.info("API Key Check: Authorized - API Key '${foundApiKey.name}' grants global access. Path '$calledPath' allowed.")
+            return@intercept // Der API-Key hat auf alles Zugriff.
+        }
 
         val pathAccessAllowed = when (foundApiKey.pathValidationType) {
             Ktor.PathValidationType.EXACT -> foundApiKey.path == calledPath
@@ -170,6 +188,7 @@ fun Application.checkApiKey(
         }
 
         if (pathAccessAllowed.not()) { //Der API-Key ist für den verwendeten Pfad nicht zulässig.
+            logger.warn("API Key Check: Forbidden - API Key '${foundApiKey.name}' (rule: ${foundApiKey.pathValidationType} '${foundApiKey.path}') does NOT allow access to path '$calledPath'.")
             call.respond(HttpStatusCode.Forbidden)
             finish()
             return@intercept
