@@ -22,7 +22,7 @@ fun <T : Serializable> T.serializeToString(): String {
  */
 fun <T : Serializable> T.serializeToByteArray(): ByteArray {
     val baos = ByteArrayOutputStream()
-    return ObjectOutputStream(ByteArrayOutputStream()).use {
+    return ObjectOutputStream(baos).use {
         it.writeObject(this)
         baos.toByteArray()
     }

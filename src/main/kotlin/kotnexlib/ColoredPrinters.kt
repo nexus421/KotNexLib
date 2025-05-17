@@ -872,3 +872,184 @@ fun createLoadingIndicator(message: String, color: CommandLineColors = CommandLi
 fun createSpinner(message: String, color: CommandLineColors = CommandLineColors.CYAN): Spinner {
     return Spinner(prefix = "", suffix = " $message", color = color)
 }
+
+/**
+ * Attempts to detect the width of the terminal.
+ * Falls back to a default width if detection fails.
+ *
+ * @param defaultWidth The default width to use if detection fails.
+ * @return The detected terminal width or the default width.
+ */
+fun getTerminalWidth(defaultWidth: Int = 80): Int {
+    return tryOrNull {
+        val process = ProcessBuilder("tput", "cols").redirectErrorStream(true).start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        output.toInt()
+    } ?: defaultWidth
+}
+
+/**
+ * Creates a rainbow-colored text by applying different colors to each character.
+ *
+ * @param text The text to colorize.
+ * @param colors The colors to use for the rainbow effect. Defaults to a standard rainbow.
+ * @return The rainbow-colored text.
+ */
+fun createRainbowText(
+    text: String,
+    colors: List<CommandLineColors> = listOf(
+        CommandLineColors.RED,
+        CommandLineColors.YELLOW,
+        CommandLineColors.GREEN,
+        CommandLineColors.CYAN,
+        CommandLineColors.BLUE,
+        CommandLineColors.PURPLE
+    )
+): String {
+    if (!Terminal.supportsAnsiColors() || colors.isEmpty()) {
+        return text
+    }
+
+    val result = StringBuilder()
+    text.forEachIndexed { index, char ->
+        val color = colors[index % colors.size]
+        result.append("${color.colorCode}$char")
+    }
+    result.append(CommandLineColors.RESET.colorCode)
+    return result.toString()
+}
+
+/**
+ * Prints rainbow-colored text to the console.
+ *
+ * @param text The text to print in rainbow colors.
+ * @param colors The colors to use for the rainbow effect. Defaults to a standard rainbow.
+ */
+fun printRainbow(
+    text: String,
+    colors: List<CommandLineColors> = listOf(
+        CommandLineColors.RED,
+        CommandLineColors.YELLOW,
+        CommandLineColors.GREEN,
+        CommandLineColors.CYAN,
+        CommandLineColors.BLUE,
+        CommandLineColors.PURPLE
+    )
+) {
+    print(createRainbowText(text, colors))
+}
+
+/**
+ * Prints rainbow-colored text to the console followed by a newline.
+ *
+ * @param text The text to print in rainbow colors.
+ * @param colors The colors to use for the rainbow effect. Defaults to a standard rainbow.
+ */
+fun printlnRainbow(
+    text: String,
+    colors: List<CommandLineColors> = listOf(
+        CommandLineColors.RED,
+        CommandLineColors.YELLOW,
+        CommandLineColors.GREEN,
+        CommandLineColors.CYAN,
+        CommandLineColors.BLUE,
+        CommandLineColors.PURPLE
+    )
+) {
+    println(createRainbowText(text, colors))
+}
+
+/**
+ * Creates a box around the given text.
+ *
+ * @param text The text to put in the box.
+ * @param padding The padding around the text.
+ * @param color The color of the box.
+ * @param style The style of the box.
+ * @param title Optional title for the box.
+ * @return The text with a box around it.
+ */
+fun createTextBox(
+    text: String,
+    padding: Int = 1,
+    color: CommandLineColors = CommandLineColors.WHITE,
+    style: CommandLineStyles = CommandLineStyles.BOLD,
+    title: String? = null
+): String {
+    if (!Terminal.supportsAnsiColors()) {
+        return text
+    }
+
+    val lines = text.split("\n")
+    val maxLineLength = lines.maxOfOrNull { it.length } ?: 0
+    val titleLength = title?.length ?: 0
+    val boxWidth = maxLineLength + padding * 2
+    val actualWidth = maxOf(boxWidth, titleLength + 4)  // Ensure box is wide enough for title
+
+    val horizontalBorder = "─".repeat(actualWidth)
+    val emptyLine = "│" + " ".repeat(actualWidth) + "│"
+
+    val result = StringBuilder()
+
+    // Top border with optional title
+    if (title != null && title.isNotEmpty()) {
+        val titlePadding = (actualWidth - title.length - 2) / 2
+        val leftPadding = titlePadding
+        val rightPadding = actualWidth - title.length - 2 - leftPadding
+
+        result.append(
+            "${color.colorCode}${style.styleCode}┌─${title}${
+                "─".repeat(rightPadding)
+            }┐${CommandLineStyles.RESET_ALL.styleCode}\n"
+        )
+    } else {
+        result.append("${color.colorCode}${style.styleCode}┌${horizontalBorder}┐${CommandLineStyles.RESET_ALL.styleCode}\n")
+    }
+
+    // Top padding
+    repeat(padding) {
+        result.append("${color.colorCode}${style.styleCode}${emptyLine}${CommandLineStyles.RESET_ALL.styleCode}\n")
+    }
+
+    // Content
+    lines.forEach { line ->
+        val paddedLine = line.padEnd(maxLineLength)
+        val leftPadding = " ".repeat(padding)
+        val rightPadding = " ".repeat(actualWidth - paddedLine.length - padding)
+
+        result.append("${color.colorCode}${style.styleCode}│${leftPadding}${CommandLineStyles.RESET_ALL.styleCode}")
+        result.append(paddedLine)
+        result.append("${color.colorCode}${style.styleCode}${rightPadding}│${CommandLineStyles.RESET_ALL.styleCode}\n")
+    }
+
+    // Bottom padding
+    repeat(padding) {
+        result.append("${color.colorCode}${style.styleCode}${emptyLine}${CommandLineStyles.RESET_ALL.styleCode}\n")
+    }
+
+    // Bottom border
+    result.append("${color.colorCode}${style.styleCode}└${horizontalBorder}┘${CommandLineStyles.RESET_ALL.styleCode}")
+
+    return result.toString()
+}
+
+/**
+ * Prints text inside a box.
+ *
+ * @param text The text to put in the box.
+ * @param padding The padding around the text.
+ * @param color The color of the box.
+ * @param style The style of the box.
+ * @param title Optional title for the box.
+ */
+fun printTextBox(
+    text: String,
+    padding: Int = 1,
+    color: CommandLineColors = CommandLineColors.WHITE,
+    style: CommandLineStyles = CommandLineStyles.BOLD,
+    title: String? = null
+) {
+    print(createTextBox(text, padding, color, style, title))
+}
+
