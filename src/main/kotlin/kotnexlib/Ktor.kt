@@ -23,7 +23,7 @@ object Ktor {
         path: String? = null,
         val pathValidationType: PathValidationType = PathValidationType.EXACT
     ) {
-        val path = path.normalizeConfiguredPath()
+        val path = path?.normalizeConfiguredPath()
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -93,10 +93,6 @@ object Ktor {
         STARTS_WITH
     }
 
-}
-
-private fun String?.normalizeConfiguredPath(): String? {
-    return if (this == null) null else if (isBlank() || this == "/") "/" else removeSuffix("/")
 }
 
 private fun String.normalizeConfiguredPath(): String = if (isBlank() || this == "/") "/" else removeSuffix("/")
