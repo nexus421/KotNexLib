@@ -1,9 +1,16 @@
 package kotnexlib
 
+import file.isZipFile
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import kotlin.concurrent.thread
 
 object Ktor {
     /**
@@ -190,4 +197,217 @@ fun Application.checkApiKey(
             return@intercept
         }
     }
+}
+
+/**
+ * Ktor application feature to enable server self-update functionality.
+ *
+ * This extension function creates an endpoint that allows the server to update itself by receiving a JAR file,
+ * creating a backup of the current JAR, replacing it with the new one, and restarting the server.
+ *
+ * **Security Considerations:**
+ * - The endpoint is protected by a password that must be provided as a query parameter.
+ * - The uploaded file is validated to ensure it's a valid JAR file.
+ * - The server creates a backup of the current JAR before replacing it.
+ * - Only one file can be uploaded at a time.
+ * - The function validates that the restart script exists and is executable.
+ *
+ * **Usage Example:**
+ * ```kotlin
+ * fun Application.configureServer() {
+ *     // Configure server self-update
+ *     serverSelfUpdate(
+ *         password = "your-secure-password",
+ *         serverJarPath = "/path/to/your/server.jar",
+ *         restartScriptPath = "/path/to/restart-script.sh"
+ *     )
+ * }
+ * ```
+ *
+ * @param password The password required to authorize the update operation.
+ * @param serverJarPath The full path to the current server JAR file that will be updated.
+ * @param restartScriptPath The path to a script that will be executed to restart the server after the update.
+ * @param updateEndpoint The endpoint path for the update functionality. Defaults to "/publishUpdateToServer".
+ * @param passwordParam The name of the query parameter for the password. Defaults to "password".
+ * @param maxFileSize The maximum allowed size for the uploaded JAR file in bytes. Defaults to 100MB.
+ */
+fun Application.serverSelfUpdate(
+    password: String,
+    serverJarPath: String,
+    restartScriptPath: String,
+    updateEndpoint: String = "/publishUpdateToServer",
+    passwordParam: String = "password",
+    maxFileSize: Long = 100 * 1024 * 1024 // Default: 100MB
+) {
+    val logger = this.environment.log
+
+    // Validate parameters
+    if (password.isBlank()) {
+        logger.error("Server Self-Update Misconfiguration: Password cannot be empty")
+        return
+    }
+
+    if (serverJarPath.isBlank()) {
+        logger.error("Server Self-Update Misconfiguration: Server JAR path cannot be empty")
+        return
+    }
+
+    if (restartScriptPath.isBlank()) {
+        logger.error("Server Self-Update Misconfiguration: Restart script path cannot be empty")
+        return
+    }
+
+    val serverJarFile = File(serverJarPath)
+    val serverJarDir = serverJarFile.parentFile
+    val serverJarName = serverJarFile.name
+    val backupJarPath = File(serverJarDir, "backup_$serverJarName")
+    val restartScriptFile = File(restartScriptPath)
+
+    // Validate that the server JAR exists
+    if (!serverJarFile.exists() || !serverJarFile.isFile) {
+        logger.error("Server Self-Update Misconfiguration: Server JAR file not found at $serverJarPath")
+        return
+    }
+
+    // Validate that the restart script exists and is executable
+    if (!restartScriptFile.exists() || !restartScriptFile.isFile) {
+        logger.error("Server Self-Update Misconfiguration: Restart script not found at $restartScriptPath")
+        return
+    }
+
+    if (!restartScriptFile.canExecute()) {
+        logger.error("Server Self-Update Misconfiguration: Restart script is not executable at $restartScriptPath")
+        return
+    }
+
+    // Configure the update endpoint
+    routing {
+        post(updateEndpoint) {
+            // Validate password
+            val providedPassword = call.request.queryParameters[passwordParam]
+            if (providedPassword != password) {
+                logger.warn("Server Self-Update: Unauthorized - Invalid password provided for update operation")
+                call.respond(HttpStatusCode.Unauthorized, "Invalid password")
+                return@post
+            }
+
+            // Process multipart data
+            val multipart = call.receiveMultipart()
+            var tempFile: File? = null
+            var fileCount = 0
+
+            try {
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FileItem -> {
+                            fileCount++
+
+                            // Ensure only one file is being uploaded
+                            if (fileCount > 1) {
+                                logger.error("Server Self-Update: Multiple files received")
+                                tempFile?.delete()
+                                part.dispose()
+                                call.respond(HttpStatusCode.BadRequest, "Only one JAR file can be uploaded at a time")
+                                return@forEachPart
+                            }
+
+                            // Create a temporary file to store the uploaded JAR
+                            tempFile = File.createTempFile("upload_", ".jar", serverJarDir)
+
+                            // Save the uploaded file
+                            part.streamProvider().use { input ->
+                                tempFile!!.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+
+                            // Validate that the uploaded file is a JAR
+                            if (!tempFile!!.isZipFile()) {
+                                logger.error("Server Self-Update: Invalid file format - The uploaded file is not a valid JAR file")
+                                tempFile.delete()
+                                part.dispose()
+                                call.respond(HttpStatusCode.BadRequest, "The uploaded file is not a valid JAR file")
+                                return@forEachPart
+                            }
+
+                            // Validate file size
+                            if (tempFile.length() > maxFileSize) {
+                                logger.error("Server Self-Update: File too large - The uploaded file exceeds the maximum allowed size of ${maxFileSize / (1024 * 1024)} MB")
+                                tempFile.delete()
+                                part.dispose()
+                                call.respond(
+                                    HttpStatusCode.BadRequest,
+                                    "The uploaded file exceeds the maximum allowed size of ${maxFileSize / (1024 * 1024)} MB"
+                                )
+                                return@forEachPart
+                            }
+                        }
+
+                        else -> {
+                            // Ignore other part types
+                        }
+                    }
+                    part.dispose()
+                }
+
+                // Check if we received a file
+                if (tempFile == null) {
+                    logger.error("Server Self-Update: No file received")
+                    call.respond(HttpStatusCode.BadRequest, "No file received. Please upload a single JAR file.")
+                    return@post
+                }
+
+                // Check if multiple files were attempted to be uploaded
+                if (fileCount > 1) {
+                    logger.error("Server Self-Update: Multiple files received")
+                    call.respond(HttpStatusCode.BadRequest, "Only one JAR file can be uploaded at a time")
+                    tempFile?.delete()
+                    return@post
+                }
+
+                // Create a backup of the current JAR
+                logger.info("Server Self-Update: Creating backup of current JAR at $backupJarPath")
+                Files.copy(
+                    serverJarFile.toPath(),
+                    backupJarPath.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+
+                // Replace the current JAR with the new one
+                logger.info("Server Self-Update: Replacing current JAR with new version")
+                Files.move(
+                    tempFile.toPath(),
+                    serverJarFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+
+                // Respond with success before restarting
+                call.respond(HttpStatusCode.OK, "Update successful. Server is restarting...")
+
+                // Execute the restart script in a separate thread after a short delay
+                thread {
+                    try {
+                        // Give time for the response to be sent
+                        Thread.sleep(1000)
+
+                        logger.info("Server Self-Update: Executing restart script at $restartScriptPath")
+                        val process = ProcessBuilder(restartScriptPath).start()
+                        val exitCode = process.waitFor()
+
+                        if (exitCode != 0) {
+                            logger.error("Server Self-Update: Restart script execution failed with exit code $exitCode")
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Server Self-Update: Error executing restart script: ${e.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error("Server Self-Update: Error during update process: ${e.message}")
+                call.respond(HttpStatusCode.InternalServerError, "Error during update process: ${e.message}")
+                tempFile?.delete()
+            }
+        }
+    }
+
+    logger.info("Server Self-Update: Endpoint configured at $updateEndpoint")
 }
