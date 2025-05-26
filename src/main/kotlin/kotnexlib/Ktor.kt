@@ -280,25 +280,287 @@ fun Application.serverSelfUpdate(
         return
     }
 
+    // HTML template for the dark mode website
+    val htmlTemplate = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Server Self-Update</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #121212;
+                    color: #e0e0e0;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                }
+                .container {
+                    background-color: #1e1e1e;
+                    border-radius: 8px;
+                    padding: 30px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                    width: 100%;
+                    max-width: 500px;
+                }
+                h1 {
+                    color: #bb86fc;
+                    margin-top: 0;
+                    text-align: center;
+                }
+                form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                label {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                    display: block;
+                }
+                input[type="password"] {
+                    padding: 10px;
+                    border-radius: 4px;
+                    border: 1px solid #333;
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+                .file-input-container {
+                    position: relative;
+                }
+                .file-input-label {
+                    display: block;
+                    padding: 10px;
+                    background-color: #2d2d2d;
+                    border: 1px solid #333;
+                    border-radius: 4px;
+                    text-align: center;
+                    cursor: pointer;
+                }
+                input[type="file"] {
+                    opacity: 0;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    cursor: pointer;
+                }
+                button {
+                    padding: 12px;
+                    background-color: #bb86fc;
+                    color: #000;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    transition: background-color 0.3s;
+                }
+                button:hover {
+                    background-color: #a370d8;
+                }
+                .message {
+                    margin-top: 20px;
+                    padding: 10px;
+                    border-radius: 4px;
+                    text-align: center;
+                }
+                .error {
+                    background-color: rgba(255, 87, 87, 0.2);
+                    color: #ff5757;
+                }
+                .success {
+                    background-color: rgba(76, 175, 80, 0.2);
+                    color: #4caf50;
+                }
+                .file-name {
+                    margin-top: 5px;
+                    font-size: 0.9em;
+                    text-align: center;
+                    word-break: break-all;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Server Self-Update</h1>
+                <form action="$updateEndpoint" method="post" enctype="multipart/form-data">
+                    <div>
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="$passwordParam" required>
+                    </div>
+                    <div>
+                        <label for="jarFile">JAR File:</label>
+                        <div class="file-input-container">
+                            <label class="file-input-label" id="fileLabel">Select JAR file</label>
+                            <input type="file" id="jarFile" name="jarFile" accept=".jar" required>
+                        </div>
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                    <button type="submit">Upload and Update</button>
+                </form>
+                <div id="message" class="message" style="display: none;"></div>
+            </div>
+            <script>
+                document.getElementById('jarFile').addEventListener('change', function(e) {
+                    const fileName = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+                    document.getElementById('fileName').textContent = fileName;
+                    document.getElementById('fileLabel').textContent = 'Change file';
+                });
+            </script>
+        </body>
+        </html>
+    """.trimIndent()
+
+    // HTML template for success message
+    fun getSuccessHtml(message: String) = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Server Self-Update</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #121212;
+                    color: #e0e0e0;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                }
+                .container {
+                    background-color: #1e1e1e;
+                    border-radius: 8px;
+                    padding: 30px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                    width: 100%;
+                    max-width: 500px;
+                    text-align: center;
+                }
+                h1 {
+                    color: #bb86fc;
+                    margin-top: 0;
+                }
+                .success {
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 4px;
+                    background-color: rgba(76, 175, 80, 0.2);
+                    color: #4caf50;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Server Self-Update</h1>
+                <div class="success">$message</div>
+            </div>
+        </body>
+        </html>
+    """.trimIndent()
+
+    // HTML template for error message
+    fun getErrorHtml(message: String) = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Server Self-Update</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #121212;
+                    color: #e0e0e0;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                }
+                .container {
+                    background-color: #1e1e1e;
+                    border-radius: 8px;
+                    padding: 30px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                    width: 100%;
+                    max-width: 500px;
+                    text-align: center;
+                }
+                h1 {
+                    color: #bb86fc;
+                    margin-top: 0;
+                }
+                .error {
+                    margin-top: 20px;
+                    padding: 15px;
+                    border-radius: 4px;
+                    background-color: rgba(255, 87, 87, 0.2);
+                    color: #ff5757;
+                }
+                .back-button {
+                    margin-top: 20px;
+                    padding: 10px 15px;
+                    background-color: #bb86fc;
+                    color: #000;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    text-decoration: none;
+                    display: inline-block;
+                }
+                .back-button:hover {
+                    background-color: #a370d8;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Server Self-Update</h1>
+                <div class="error">$message</div>
+                <a href="$updateEndpoint" class="back-button">Back to Upload</a>
+            </div>
+        </body>
+        </html>
+    """.trimIndent()
+
     // Configure the update endpoint
     routing {
-        post(updateEndpoint) {
-            // Validate password
-            val providedPassword = call.request.queryParameters[passwordParam]
-            if (providedPassword != password) {
-                logger.warn("Server Self-Update: Unauthorized - Invalid password provided for update operation")
-                call.respond(HttpStatusCode.Unauthorized, "Invalid password")
-                return@post
-            }
+        // GET handler to display the upload form
+        get(updateEndpoint) {
+            call.respondText(htmlTemplate, ContentType.Text.Html)
+        }
 
-            // Process multipart data
-            val multipart = call.receiveMultipart()
+        // POST handler to process the upload
+        post(updateEndpoint) {
             var tempFile: File? = null
             var fileCount = 0
 
             try {
+                // Process multipart data
+                val multipart = call.receiveMultipart()
+                var providedPassword: String? = null
+
                 multipart.forEachPart { part ->
                     when (part) {
+                        is PartData.FormItem -> {
+                            if (part.name == passwordParam) {
+                                providedPassword = part.value
+                            }
+                        }
                         is PartData.FileItem -> {
                             fileCount++
 
@@ -307,7 +569,10 @@ fun Application.serverSelfUpdate(
                                 logger.error("Server Self-Update: Multiple files received")
                                 tempFile?.delete()
                                 part.dispose()
-                                call.respond(HttpStatusCode.BadRequest, "Only one JAR file can be uploaded at a time")
+                                call.respondText(
+                                    getErrorHtml("Only one JAR file can be uploaded at a time"),
+                                    ContentType.Text.Html
+                                )
                                 return@forEachPart
                             }
 
@@ -326,7 +591,10 @@ fun Application.serverSelfUpdate(
                                 logger.error("Server Self-Update: Invalid file format - The uploaded file is not a valid JAR file")
                                 tempFile.delete()
                                 part.dispose()
-                                call.respond(HttpStatusCode.BadRequest, "The uploaded file is not a valid JAR file")
+                                call.respondText(
+                                    getErrorHtml("The uploaded file is not a valid JAR file"),
+                                    ContentType.Text.Html
+                                )
                                 return@forEachPart
                             }
 
@@ -335,14 +603,13 @@ fun Application.serverSelfUpdate(
                                 logger.error("Server Self-Update: File too large - The uploaded file exceeds the maximum allowed size of ${maxFileSize / (1024 * 1024)} MB")
                                 tempFile.delete()
                                 part.dispose()
-                                call.respond(
-                                    HttpStatusCode.BadRequest,
-                                    "The uploaded file exceeds the maximum allowed size of ${maxFileSize / (1024 * 1024)} MB"
+                                call.respondText(
+                                    getErrorHtml("The uploaded file exceeds the maximum allowed size of ${maxFileSize / (1024 * 1024)} MB"),
+                                    ContentType.Text.Html
                                 )
                                 return@forEachPart
                             }
                         }
-
                         else -> {
                             // Ignore other part types
                         }
@@ -350,17 +617,34 @@ fun Application.serverSelfUpdate(
                     part.dispose()
                 }
 
+                // Validate password
+                if (providedPassword != password) {
+                    logger.warn("Server Self-Update: Unauthorized - Invalid password provided for update operation")
+                    tempFile?.delete()
+                    call.respondText(
+                        getErrorHtml("Invalid password"),
+                        ContentType.Text.Html
+                    )
+                    return@post
+                }
+
                 // Check if we received a file
                 if (tempFile == null) {
                     logger.error("Server Self-Update: No file received")
-                    call.respond(HttpStatusCode.BadRequest, "No file received. Please upload a single JAR file.")
+                    call.respondText(
+                        getErrorHtml("No file received. Please upload a single JAR file."),
+                        ContentType.Text.Html
+                    )
                     return@post
                 }
 
                 // Check if multiple files were attempted to be uploaded
                 if (fileCount > 1) {
                     logger.error("Server Self-Update: Multiple files received")
-                    call.respond(HttpStatusCode.BadRequest, "Only one JAR file can be uploaded at a time")
+                    call.respondText(
+                        getErrorHtml("Only one JAR file can be uploaded at a time"),
+                        ContentType.Text.Html
+                    )
                     tempFile?.delete()
                     return@post
                 }
@@ -382,7 +666,10 @@ fun Application.serverSelfUpdate(
                 )
 
                 // Respond with success before restarting
-                call.respond(HttpStatusCode.OK, "Update successful. Server is restarting...")
+                call.respondText(
+                    getSuccessHtml("Update successful. Server is restarting..."),
+                    ContentType.Text.Html
+                )
 
                 // Execute the restart script in a separate thread after a short delay
                 thread {
@@ -403,7 +690,10 @@ fun Application.serverSelfUpdate(
                 }
             } catch (e: Exception) {
                 logger.error("Server Self-Update: Error during update process: ${e.message}")
-                call.respond(HttpStatusCode.InternalServerError, "Error during update process: ${e.message}")
+                call.respondText(
+                    getErrorHtml("Error during update process: ${e.message}"),
+                    ContentType.Text.Html
+                )
                 tempFile?.delete()
             }
         }
