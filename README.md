@@ -155,7 +155,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nexus421:KotNexLib:3.1.1")
+    implementation("com.github.nexus421:KotNexLib:3.2.0")
 }
 ```
 
@@ -167,7 +167,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.nexus421:KotNexLib:3.1.1'
+    implementation 'com.github.nexus421:KotNexLib:3.2.0'
 }
 ```
 
