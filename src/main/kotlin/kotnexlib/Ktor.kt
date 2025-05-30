@@ -203,14 +203,15 @@ fun Application.checkApiKey(
  * Ktor application feature to enable server self-update functionality.
  *
  * This extension function creates an endpoint that allows the server to update itself by receiving a JAR file,
- * creating a backup of the current JAR, replacing it with the new one, and restarting the server.
+ * creating a backup of the current JAR, replacing it with the new one, and optionally restarting the server.
  *
  * **Security Considerations:**
  * - The endpoint is protected by a password that must be provided as a query parameter.
  * - The uploaded file is validated to ensure it's a valid JAR file.
  * - The server creates a backup of the current JAR before replacing it.
  * - Only one file can be uploaded at a time.
- * - The function validates that the restart script exists and is executable.
+ * - If a restart script path is provided, the function validates that the script exists and is executable.
+ * - The uploaded file size is checked against the current file size to ensure it doesn't deviate too much.
  *
  * **Usage Example:**
  * ```kotlin
@@ -226,18 +227,20 @@ fun Application.checkApiKey(
  *
  * @param password The password required to authorize the update operation.
  * @param serverJarPath The full path to the current server JAR file that will be updated.
- * @param restartScriptPath The path to a script that will be executed to restart the server after the update.
+ * @param restartScriptPath The path to a script that will be executed to restart the server after the update. If null, the server will not be automatically restarted.
  * @param updateEndpoint The endpoint path for the update functionality. Defaults to "/publishUpdateToServer".
  * @param passwordParam The name of the query parameter for the password. Defaults to "password".
  * @param maxFileSize The maximum allowed size for the uploaded JAR file in bytes. Defaults to 100MB.
+ * @param maxFileSizeDeviation The maximum allowed percentage deviation in file size between the current and uploaded JAR files. Defaults to 10%.
  */
 fun Application.serverSelfUpdate(
     password: String,
     serverJarPath: String,
-    restartScriptPath: String,
+    restartScriptPath: String? = null,
     updateEndpoint: String = "/publishUpdateToServer",
     passwordParam: String = "password",
-    maxFileSize: Long = 100 * 1024 * 1024 // Default: 100MB
+    maxFileSize: Long = 100 * 1024 * 1024, // Default: 100MB
+    maxFileSizeDeviation: Int = 10 // Default: 10%
 ) {
     val logger = this.environment.log
 
@@ -252,16 +255,10 @@ fun Application.serverSelfUpdate(
         return
     }
 
-    if (restartScriptPath.isBlank()) {
-        logger.error("Server Self-Update Misconfiguration: Restart script path cannot be empty")
-        return
-    }
-
     val serverJarFile = File(serverJarPath)
     val serverJarDir = serverJarFile.parentFile
     val serverJarName = serverJarFile.name
     val backupJarPath = File(serverJarDir, "backup_$serverJarName")
-    val restartScriptFile = File(restartScriptPath)
 
     // Validate that the server JAR exists
     if (!serverJarFile.exists() || !serverJarFile.isFile) {
@@ -269,15 +266,30 @@ fun Application.serverSelfUpdate(
         return
     }
 
-    // Validate that the restart script exists and is executable
-    if (!restartScriptFile.exists() || !restartScriptFile.isFile) {
-        logger.error("Server Self-Update Misconfiguration: Restart script not found at $restartScriptPath")
-        return
-    }
+    // Check if restart script is provided
+    val restartScriptFile = if (restartScriptPath != null) {
+        if (restartScriptPath.isBlank()) {
+            logger.error("Server Self-Update Misconfiguration: Restart script path cannot be empty if provided")
+            return
+        }
 
-    if (!restartScriptFile.canExecute()) {
-        logger.error("Server Self-Update Misconfiguration: Restart script is not executable at $restartScriptPath")
-        return
+        val file = File(restartScriptPath)
+
+        // Validate that the restart script exists and is executable
+        if (!file.exists() || !file.isFile) {
+            logger.error("Server Self-Update Misconfiguration: Restart script not found at $restartScriptPath")
+            return
+        }
+
+        if (!file.canExecute()) {
+            logger.error("Server Self-Update Misconfiguration: Restart script is not executable at $restartScriptPath")
+            return
+        }
+
+        file
+    } else {
+        logger.info("Server Self-Update: No restart script provided. Server will not be automatically restarted after update.")
+        null
     }
 
     // HTML template for the dark mode website
@@ -609,6 +621,23 @@ fun Application.serverSelfUpdate(
                                 )
                                 return@forEachPart
                             }
+
+                            // Validate file size deviation from current JAR
+                            val currentFileSize = serverJarFile.length()
+                            val uploadedFileSize = tempFile.length()
+                            val deviation =
+                                kotlin.math.abs(uploadedFileSize - currentFileSize) * 100.0 / currentFileSize
+
+                            if (deviation.toInt() > maxFileSizeDeviation) {
+                                logger.error("Server Self-Update: File size deviation too large - The uploaded file size deviates by ${deviation.toInt()}% from the current file size, which exceeds the maximum allowed deviation of $maxFileSizeDeviation%")
+                                tempFile.delete()
+                                part.dispose()
+                                call.respondText(
+                                    getErrorHtml("The uploaded file size deviates by ${deviation.toInt()}% from the current file size, which exceeds the maximum allowed deviation of $maxFileSizeDeviation%"),
+                                    ContentType.Text.Html
+                                )
+                                return@forEachPart
+                            }
                         }
                         else -> {
                             // Ignore other part types
@@ -665,28 +694,37 @@ fun Application.serverSelfUpdate(
                     StandardCopyOption.REPLACE_EXISTING
                 )
 
-                // Respond with success before restarting
+                // Respond with success before restarting (if applicable)
+                val successMessage = if (restartScriptFile != null) {
+                    "Update successful. Server is restarting..."
+                } else {
+                    "Update successful. Server will NOT be automatically restarted."
+                }
                 call.respondText(
-                    getSuccessHtml("Update successful. Server is restarting..."),
+                    getSuccessHtml(successMessage),
                     ContentType.Text.Html
                 )
 
-                // Execute the restart script in a separate thread after a short delay
-                thread {
-                    try {
-                        // Give time for the response to be sent
-                        Thread.sleep(1000)
+                // Execute the restart script in a separate thread after a short delay if provided
+                if (restartScriptFile != null) {
+                    thread {
+                        try {
+                            // Give time for the response to be sent
+                            Thread.sleep(1000)
 
-                        logger.info("Server Self-Update: Executing restart script at $restartScriptPath")
-                        val process = ProcessBuilder(restartScriptPath).start()
-                        val exitCode = process.waitFor()
+                            logger.info("Server Self-Update: Executing restart script at $restartScriptPath")
+                            val process = ProcessBuilder(restartScriptPath!!).start()
+                            val exitCode = process.waitFor()
 
-                        if (exitCode != 0) {
-                            logger.error("Server Self-Update: Restart script execution failed with exit code $exitCode")
+                            if (exitCode != 0) {
+                                logger.error("Server Self-Update: Restart script execution failed with exit code $exitCode")
+                            }
+                        } catch (e: Exception) {
+                            logger.error("Server Self-Update: Error executing restart script: ${e.message}")
                         }
-                    } catch (e: Exception) {
-                        logger.error("Server Self-Update: Error executing restart script: ${e.message}")
                     }
+                } else {
+                    logger.info("Server Self-Update: Update completed successfully, but server was not automatically restarted (no restart script provided)")
                 }
             } catch (e: Exception) {
                 logger.error("Server Self-Update: Error during update process: ${e.message}")
