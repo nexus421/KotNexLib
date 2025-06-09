@@ -142,6 +142,7 @@ object UniversalServerStorage {
      * HTTP Method: GET (if parameters provided)
      * Endpoint: /service/query?name={uniqueId}&{indexParameters}
      */
+    @Deprecated("Use new query method.")
     suspend fun getWithIndexFilterSave(
         indexString1: String? = null,
         indexString2: String? = null,
@@ -162,6 +163,7 @@ object UniversalServerStorage {
      *
      * If all parameters are null, the whole table content will be returned! Be patient with that!
      */
+    @Deprecated("Use new query method.")
     suspend fun getWithIndexFilter(
         indexString1: String? = null,
         indexString2: String? = null,
@@ -176,6 +178,35 @@ object UniversalServerStorage {
             if (indexLong2 != null) queries += "&indexLong2=$indexLong2"
             val result = client.get("$baseUrl/service/query?name=$uniqueId${queries}") {
                 header("API-KEY", apiKey)
+            }
+
+            if (result.status.isSuccess()) {
+                ResultOf2.Success(result.body<List<Data>>())
+            } else {
+                result.defaultErrorHandling2()
+            }
+        } catch (e: Exception) {
+            yield()
+            ResultOf2.Failure(Error.UnknownError(e))
+        }
+    }
+
+    /**
+     * Sends a query request to the service and retrieves the filtered data as a result.
+     *
+     * The method uses the provided query builder to construct the query data,
+     * sends it to the configured service endpoint, and processes the response.
+     *
+     * @param queryBuilder A lambda function that generates a list of `QueryData` objects
+     *                     representing the query criteria to be sent to the service. Everything is connected with AND!
+     * @return A `ResultOf2` object containing either a list of `Data` on success
+     *         or an `Error` on failure.
+     */
+    suspend fun getData(queryBuilder: () -> List<QueryData>): ResultOf2<List<Data>, Error> {
+        return try {
+            val result = client.post("$baseUrl/service/query?name=$uniqueId") {
+                header("API-KEY", apiKey)
+                setBody(queryBuilder())
             }
 
             if (result.status.isSuccess()) {
@@ -278,8 +309,6 @@ object UniversalServerStorage {
         else -> ResultOf2.Failure(Error.UnknownError(null))
     }
 
-    //ToDo: Server und Client: Uhrzeit Filtern
-
 
     /**
      * Data model class representing a stored item in the database.
@@ -319,6 +348,84 @@ object UniversalServerStorage {
         class Unauthorized(msg: String?) : Error(msg)
         class BadRequest(msg: String?) : Error(msg)
         class InternalServerError(msg: String?) : Error(msg)
+    }
+
+    /**
+     * Represents a sealed class for querying data based on different criteria or attributes.
+     * Each subclass specifies the type of query performed and the associated query type.
+     */
+    @Serializable
+    sealed class QueryData() {
+        @Serializable
+        data class Version(val queryNumberType: QueryNumberType) : QueryData()
+
+        @Serializable
+        data class Timestamp(val queryNumberType: QueryNumberType) : QueryData()
+
+        @Serializable
+        data class IndexLong1(val queryNumberType: QueryNumberType) : QueryData()
+
+        @Serializable
+        data class IndexLong2(val queryNumberType: QueryNumberType) : QueryData()
+
+        @Serializable
+        data class IndexString1(val queryStringType: QueryStringType) : QueryData()
+
+        @Serializable
+        data class IndexString2(val queryStringType: QueryStringType) : QueryData()
+    }
+
+    /**
+     * Represents a type of query string comparison. It serves as a base sealed class
+     * that defines different kinds of operations that can be performed on query strings.
+     */
+    @Serializable
+    sealed class QueryStringType() {
+        @Serializable
+        class Equal(val otherString: String) : QueryStringType()
+
+        @Serializable
+        class EqualIgnoreCase(val otherString: String) : QueryStringType()
+
+        @Serializable
+        class Contains(val otherString: String) : QueryStringType()
+
+        @Serializable
+        class ContainsIgnoreCase(val otherString: String) : QueryStringType()
+
+        @Serializable
+        data object Null : QueryStringType()
+    }
+
+    /**
+     * A sealed class representing various types of numeric queries.
+     * Each subclass defines specific conditions for comparing numbers.
+     */
+    @Serializable
+    sealed class QueryNumberType() {
+        @Serializable
+        class Equal(val otherNumber: Long) : QueryNumberType()
+
+        @Serializable
+        class Higher(val otherNumber: Long) : QueryNumberType()
+
+        @Serializable
+        class Lower(val otherNumber: Long) : QueryNumberType()
+
+        @Serializable
+        class EqualHigher(val otherNumber: Long) : QueryNumberType()
+
+        @Serializable
+        class EqualLower(val otherNumber: Long) : QueryNumberType()
+
+        /**
+         * Between [lower] and [higher] inklusive
+         */
+        @Serializable
+        class Between(val lower: Long, val higher: Long) : QueryNumberType()
+
+        @Serializable
+        data object Null : QueryNumberType()
     }
 
 }
