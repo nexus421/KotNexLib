@@ -134,3 +134,15 @@ inline fun <T, K> K?.tryOrNull(noinline onError: ((Throwable) -> Unit)? = null, 
  */
 fun <T : Any> getAllSealedSubclassesFrom(c: KClass<T>): List<KClass<T>> =
     if (c.isSealed) c.nestedClasses.filter { it.isFinal && it.isSubclassOf(c) }.map { it.cast() } else emptyList()
+
+/**
+ * Executes the provided block if the nullable receiver is null.
+ * May use this after ?.let {...}.onNull {...}. This is a kind of if/else
+ *
+ * @param block The block of code to execute if the receiver is null.
+ * @return The original receiver, whether null or non-null.
+ */
+inline fun <T> T?.onNull(block: () -> Unit): T? {
+    if (this == null) block()
+    return this
+}
