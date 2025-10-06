@@ -297,3 +297,12 @@ fun String.fromBase64OrNull() = tryOrNull { String(Base64.getDecoder().decode(th
  * output = "a b c d"
  */
 fun String.splitEachCharBy(separator: String = " ") = toCharArray().joinToString(separator)
+
+/**
+ * Replaces the first occurrence of the [search] substring with [replaceBy].
+ * If the [search] substring is not found, [replaceBy] is appended to the end of the string.
+ *
+ * @param search The substring to be replaced.
+ * @param replaceBy The substring to replace with, or to append if the search string is not found.
+ */
+fun String.replaceOrAppend(search: String, replaceBy: String) = if(contains(search)) replace(search, replaceBy) else this + replaceBy

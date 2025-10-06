@@ -126,3 +126,20 @@ inline fun Any.getCurrentClassAndMethodName(): ClassAndMethod? {
 }
 
 data class ClassAndMethod(val className: String, val methodName: String)
+
+/**
+ * Repeatedly executes a given suspending function until a specified condition is met.
+ *
+ * @param execute A suspending function that produces a result of type T to be evaluated.
+ * @param check A condition that receives the result of type T and returns true or false to determine
+ * whether the loop should terminate.
+ * @return The result of type T from the last successful execution of the suspending function
+ * meeting the condition.
+ */
+suspend fun <T> whileLoop(execute: suspend () -> T, check: (T) -> Boolean): T {
+    var executeResult: T = execute()
+    while (check(executeResult).not()) {
+        executeResult = execute()
+    }
+    return executeResult
+}
