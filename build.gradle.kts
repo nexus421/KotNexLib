@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "3.2.1"
+version = "3.3.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -34,10 +34,19 @@ kotlin {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "nexus421Maven"
+            url = uri("https://maven.kickner.bayern/releases")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
     publications {
         create<MavenPublication>("maven") {
-
-            groupId = "com.github.nexus421"
+            groupId = "bayern.kickner"
             artifactId = "KotNexLib"
             version = globalVersion
             from(components["java"])
