@@ -20,6 +20,7 @@ import javax.crypto.spec.SecretKeySpec
 object AesEncryptionHelper {
     /**
      * Generates a new and secure Key for AES to use for encryption.
+     * You should always use the default key size with 256 bit!
      */
     fun generateAESKey(keySize: Int = 256) = KeyGenerator.getInstance("AES").apply { init(keySize) }.generateKey()
 
@@ -40,14 +41,15 @@ object AesEncryptionHelper {
     /**
      * Generates a new and secure Initial Vector (IV) for the given [algorithm]. Defaults to AES.
      */
-    fun getIVSecureRandom(algorithm: String = "AES"): IvParameterSpec? = tryOrNull({ it.printStackTrace() }) {
-        return IvParameterSpec(generateSecureRandom(Cipher.getInstance(algorithm).blockSize))
+    fun getIVSecureRandom(algorithm: String = "AES"): Result<IvParameterSpec> = runCatching {
+        return Result.success(IvParameterSpec(generateSecureRandom(Cipher.getInstance(algorithm).blockSize)))
     }
 
     /**
      * Creates a secure random byte array with the given [size]
      */
-    fun generateSecureRandom(size: Int) = ByteArray(size).apply { SecureRandom.getInstanceStrong().nextBytes(this) }
+    fun generateSecureRandom(size: Int = 16) =
+        ByteArray(size).apply { SecureRandom.getInstanceStrong().nextBytes(this) }
 
     /**
      * Encrypt this String with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
@@ -112,7 +114,7 @@ object AesEncryptionHelper {
      * @return [AesEncryption]. Read the doc there for more information. The generated secret key can be found there.
      */
     fun String.encryptWithAesHelper(compress: Boolean = false): AesEncryption? {
-        val iv = getIVSecureRandom() ?: return null
+        val iv = getIVSecureRandom().getOrNull() ?: return null
         val key = generateAESKey()
         val encrypted = encryptWithAES(key, iv) ?: return null
 
@@ -126,8 +128,8 @@ object AesEncryptionHelper {
      * Most will be randomly generated. Check the result for all used informations used for encryption.
      *
      * @param password to encrypt the String with. This has to be kept as a secret!
-     * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 8 Byte array.
-     * You should not use the default implementation here. Generate a salt one time and store it to easily reuse it again.
+     * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 16 Byte array.
+     * You can reuse the salt or generate a new one any time (recomended).
      * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
      * @param onError will be called on any thrown exception. Default: Prints to stacktrace
      *
@@ -135,11 +137,11 @@ object AesEncryptionHelper {
      */
     fun String.encryptWithAesAndPasswordHelper(
         password: String,
-        salt: ByteArray = generateSecureRandom(8),
+        salt: ByteArray = generateSecureRandom(16),
         compress: Boolean = false,
         onError: (Throwable) -> Unit = { it.printStackTrace() }
     ): AesEncryption? {
-        val iv = getIVSecureRandom() ?: return null
+        val iv = getIVSecureRandom().getOrNull() ?: return null
         val key = generateSecureAesKeyFromPassword(password, salt)
         val encrypted = encryptWithAES(key, iv, compress, onError) ?: return null
 
@@ -149,13 +151,13 @@ object AesEncryptionHelper {
     /**
      * Helper class that holds all important information after an encryption with [encryptWithAesHelper].
      *
-     * [compressedBeforeEncryption]: This parameter is helpful if you encrypt large Strings. This will decrease the final encrypted result.
-     * [key] This is a 256-Bit secure key with secure random numbers. This is the password that was used for encryption and is
+     * [compressedBeforeEncryption]: true, if the result was compressed before encryption
+     * [key] This is a 256-Bit (only in default) secure key with secure random numbers. This is the password that was used for encryption and is
      * required for decryption. You will need this key for later decryption!
      * [ivParameterSpec] This is in general not required but highly recommended. So the methods here force you to use one.
-     * This will prevent dictionary attacks and will be used while encryption. So save this as this is also required for decryption.
+     * This will prevent dictionary attacks and will be used while encryption. So save this as this is also required for decryption. The iv can be stored within a database. No security needed.
      * [salt] If you used the encryption with a password, you are required to use a salt for better stronger encryption. The salt is not required to
-     * keep secret. (but the password is!) So you may store the salt globally.
+     * keep secret. (but the password is!) So you may store the salt globally or create a new one every time you encrypt.
      *
      * @param encryptedText the encrypted text from [encryptWithAesHelper]
      * @param compressedBeforeEncryption true if the encrypted text was compressed before encryption.

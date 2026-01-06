@@ -1,4 +1,4 @@
-package kotnexlib.external
+package kotnexlib.external.objectbox
 
 import io.objectbox.Box
 import io.objectbox.query.Query
@@ -74,4 +74,3 @@ fun <T> Box<T>.findOrNull(queryCondition: QueryCondition<T>): T? = query(queryCo
  * @return A list of elements that match the query condition.
  */
 fun <T> Box<T>.findAll(queryCondition: QueryCondition<T>): List<T> = query(queryCondition).build().findAndClose()
-
