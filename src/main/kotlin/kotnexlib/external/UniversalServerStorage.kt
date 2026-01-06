@@ -1,4 +1,4 @@
-package kotnexlib
+package kotnexlib.external
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -12,7 +12,10 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.yield
 import kotlinx.serialization.Serializable
-import kotnexlib.UniversalServerStorage.getWithIndexFilter
+import kotnexlib.ResultOf2
+import kotnexlib.ResultOfEmpty
+import kotnexlib.external.UniversalServerStorage.getWithIndexFilter
+import kotnexlib.toBase64
 
 /**
  * This class is a simple implementation of the API for the UniversalServerStorage.
@@ -67,7 +70,7 @@ object UniversalServerStorage {
      * Endpoint: /service?name={uniqueId}&id={id}
      *
      * @param id The unique identifier of the data item to retrieve.
-     * @return A [ResultOf2] object containing either a [Success] with the retrieved [Data] or a [Failure] with an [Error].
+     * @return A [kotnexlib.ResultOf2] object containing either a [Success] with the retrieved [Data] or a [Failure] with an [Error].
      */
     suspend fun getSingle(id: Long): ResultOf2<Data, Error> = try {
         val result = client.get("$baseUrl/service?name=$uniqueId&id=$id") {
@@ -226,9 +229,9 @@ object UniversalServerStorage {
      * id != 0 --> Update existing entry or error, if entry does not exist!
      *
      * @param data The data to be serialized and sent as the request body.
-     * @return A [ResultOfEmpty] object that represents either the success or the failure of the operation.
-     *         On success, the result will be [ResultOfEmpty.Success]. On failure, the result will be
-     *         [ResultOfEmpty.Failure] containing an appropriate [Error] instance.
+     * @return A [kotnexlib.ResultOfEmpty] object that represents either the success or the failure of the operation.
+     *         On success, the result will be [kotnexlib.ResultOfEmpty.Success]. On failure, the result will be
+     *         [kotnexlib.ResultOfEmpty.Failure] containing an appropriate [Error] instance.
      */
     suspend fun post(data: Data): ResultOfEmpty<Error> = try {
         val result = client.post("$baseUrl/service") {
@@ -355,7 +358,7 @@ object UniversalServerStorage {
      * Each subclass specifies the type of query performed and the associated query type.
      */
     @Serializable
-    sealed class QueryData() {
+    sealed class QueryData {
         @Serializable
         data class Version(val queryNumberType: QueryNumberType) : QueryData()
 
@@ -380,7 +383,7 @@ object UniversalServerStorage {
      * that defines different kinds of operations that can be performed on query strings.
      */
     @Serializable
-    sealed class QueryStringType() {
+    sealed class QueryStringType {
         @Serializable
         class Equal(val otherString: String) : QueryStringType()
 
@@ -402,7 +405,7 @@ object UniversalServerStorage {
      * Each subclass defines specific conditions for comparing numbers.
      */
     @Serializable
-    sealed class QueryNumberType() {
+    sealed class QueryNumberType {
         @Serializable
         class Equal(val otherNumber: Long) : QueryNumberType()
 

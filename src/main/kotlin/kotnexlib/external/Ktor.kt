@@ -1,4 +1,4 @@
-package kotnexlib
+package kotnexlib.external
 
 import file.isZipFile
 import io.ktor.http.*
@@ -7,10 +7,12 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotnexlib.coverString
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import kotlin.concurrent.thread
+import kotlin.math.abs
 
 object Ktor {
     /**
@@ -626,7 +628,7 @@ fun Application.serverSelfUpdate(
                             val currentFileSize = serverJarFile.length()
                             val uploadedFileSize = tempFile.length()
                             val deviation =
-                                kotlin.math.abs(uploadedFileSize - currentFileSize) * 100.0 / currentFileSize
+                                abs(uploadedFileSize - currentFileSize) * 100.0 / currentFileSize
 
                             if (deviation.toInt() > maxFileSizeDeviation) {
                                 logger.error("Server Self-Update: File size deviation too large - The uploaded file size deviates by ${deviation.toInt()}% from the current file size, which exceeds the maximum allowed deviation of $maxFileSizeDeviation%")

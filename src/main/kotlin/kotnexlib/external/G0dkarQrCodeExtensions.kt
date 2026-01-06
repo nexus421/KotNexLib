@@ -1,4 +1,4 @@
-package kotnexlib
+package kotnexlib.external
 
 import qrcode.QRCodeBuilder
 

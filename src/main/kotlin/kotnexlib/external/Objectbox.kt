@@ -1,4 +1,4 @@
-package kotnexlib
+package kotnexlib.external
 
 import io.objectbox.Box
 import io.objectbox.query.Query

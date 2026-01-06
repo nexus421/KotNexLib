@@ -1,4 +1,4 @@
-package kotnexlib
+package kotnexlib.external
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
