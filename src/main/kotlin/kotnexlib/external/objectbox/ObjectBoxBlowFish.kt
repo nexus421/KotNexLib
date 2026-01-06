@@ -65,15 +65,28 @@ object BlowfishStringEncryption : PropertyConverter<BFString?, String?> {
 @ExperimentalKotNexLibAPI
 object BlowfishStringEncryptionWithPassword : PropertyConverter<String?, String?> {
 
+    /**
+     * The password used for encryption and decryption. Must be set before performing encryption or decryption.
+     * Larger is better.
+     */
     var password: String = ""
+
+    /**
+     * Determines whether compression will be applied during encryption or processing operations.
+     *
+     * When set to `true`, the data will be compressed before being processed or encrypted.
+     * If `false`, the data remains uncompressed.
+     */
     var compress: Boolean = false
 
     override fun convertToEntityProperty(databaseValue: String?): String? {
+        if (password.isBlank()) throw IllegalStateException("Password cannot be blank!")
         if (databaseValue.isNullOrBlank()) return null
         return BFString.fromRawString(databaseValue).decrypt(password)
     }
 
     override fun convertToDatabaseValue(entityProperty: String?): String? {
+        if (password.isBlank()) throw IllegalStateException("Password cannot be blank!")
         if (entityProperty.isNullOrBlank()) return null
         return BFString(entityProperty, password, compress = compress).encryptToDbString()
     }
