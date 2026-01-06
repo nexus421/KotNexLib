@@ -2,13 +2,9 @@ package kotnexlib
 
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 
 /**
  * Given string will be covered with [coverChar] from [start] to [end].
@@ -104,38 +100,14 @@ inline fun String?.ifNotNullOrBlank(doThis: (String) -> Unit) {
  *
  * @return Compressed String as Base64 or null, if an error occurred
  */
-fun String?.compress(): String? = try {
-    if (isNullOrBlank()) {
-        this
-    } else {
-        val out = ByteArrayOutputStream()
-        GZIPOutputStream(out).use {
-            it.write(toByteArray())
-        }
-        String(Base64.getEncoder().encode(out.toByteArray()))
-    }
-} catch (e: Exception) {
-    e.printStackTrace()
-    null
-}
+fun String?.compress(): String? = this?.toByteArray()?.compress()?.let { String(it) }
 
 /**
  * Decompress a Base64 based String, which was compressed with [compress].
  *
  * @return decompressed String or null when an error occurred.
  */
-fun String?.decompress(): String? = try {
-    if (isNullOrBlank()) {
-        this
-    } else {
-        GZIPInputStream(ByteArrayInputStream(Base64.getDecoder().decode(this))).use {
-            String(it.readBytes())
-        }
-    }
-} catch (e: Exception) {
-    e.printStackTrace()
-    null
-}
+fun String?.decompress(): String? = this?.toByteArray()?.decompress()?.let { String(it) }
 
 /**
  * Checks if this string is contained in that string or if that string is contained in this string
