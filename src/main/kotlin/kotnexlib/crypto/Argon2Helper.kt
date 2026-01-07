@@ -8,12 +8,11 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
 import java.security.MessageDigest
 
-fun main() {
-    val hash = hash("password".toCharArray(), iterations = 10)
-    println(hash)
-    println(Argon2Helper.verify("password".toCharArray(), hash))
-}
-
+/**
+ * Provides utility methods for hashing and verifying passwords securely using the Argon2id algorithm.
+ * Includes optimized configurations for mobile devices and customizable parameters for broader use cases.
+ * All methods ensure security best practices, such as using secure random salts and configurable iteration counts.
+ */
 object Argon2Helper {
 
     private const val DEFAULT_HASH_LENGTH = 32
@@ -34,7 +33,7 @@ object Argon2Helper {
      *
      * Format: $argon2id$v=19$m=<memory>,t=<iterations>,p=<parallelism>$<saltHex>$<hashHex>
      *
-     * @param password The password to hash. Use CharArray to allow clearing memory after use.
+     * @param password The password (or other input) to hash. Use CharArray to allow clearing memory after use.
      * @param iterations (T-Cost): Number of passes over the memory. Higher = slower = more secure.
      * Minimum allowed: 1. Default: 3.
      * @param memoryKb (M-Cost): Amount of memory in KiB to use. This is the main defense against GPUs/ASICs.
@@ -81,11 +80,13 @@ object Argon2Helper {
     }
 
     /**
-     * Verifies a password against a stored Argon2 hash string.
-     * Automatically extracts parameters (salt, memory, iterations) from the hash string.
-     * Requires it to be generated with [hash].
+     * Verifies whether the provided password matches the given encoded hash using the Argon2id hashing algorithm.
      *
-     * @return true if the password matches the hash, false otherwise.
+     * @param password The password to verify, represented as a character array.
+     * @param encodedHash The encoded hash to validate against, which includes parameters such as memory, iterations,
+     * parallelism, salt, and the original hash.
+     * @return A [Result] object containing true if the password matches the hash, false otherwise. Any errors during
+     * the verification process are captured as exceptions within the [Result].
      */
     fun verify(password: CharArray, encodedHash: String): Result<Boolean> = runCatching {
         val parts = encodedHash.fromBase64().split("$")
