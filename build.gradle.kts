@@ -27,6 +27,13 @@ dependencies {
     compileOnly("io.ktor:ktor-client-content-negotiation:3.3.3")
     compileOnly("io.ktor:ktor-serialization-kotlinx-json:3.3.3")
     compileOnly("io.ktor:ktor-client-auth:3.3.3")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 kotlin {

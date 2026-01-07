@@ -1,205 +1,89 @@
 # KotNexLib
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/dce41e84-cd28-49b8-91a7-6649e6890ad2" />
+  <img src="https://github.com/user-attachments/assets/dce41e84-cd28-49b8-91a7-6649e6890ad2" alt="KotNexLib Logo" width="150"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Kotlin-2.3.0-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Version" />
+  <img src="https://img.shields.io/badge/JDK-11%2B-orange.svg?style=flat-square&logo=openjdk" alt="JDK Version" />
 </p>
 
 ## Overview
 
-KotNexLib is a comprehensive collection of Kotlin extensions and utility classes designed to enhance productivity and
-simplify common programming tasks. This library can be used in all JVM applications targeting Java 11 or higher.
+**KotNexLib** is a professional collection of Kotlin extensions and utilities designed to simplify JVM development. From
+high-performance cryptography to advanced terminal UI components, it provides the building blocks for modern Kotlin
+applications.
 
-For Android-specific extensions, please refer to the companion repository "Kotlin-Extensions-Android".
+> [!IMPORTANT]
+> This library targets **Java 11 or higher**. For Android-specific extensions,
+> see [Kotlin-Extensions-Android](https://github.com/nexus421/Kotlin-Extensions-Android).
 
-> **Warning**: Breaking changes were introduced in versions 2.0.0 and 3.0.0. The folder structure has been reorganized,
-> which may require re-importing some methods.
+> [!WARNING]
+> **Migration to 4.0.0**:
+> - The project is moving to a new Maven repository: `https://maven.kickner.bayern/releases`.
+> - Version 4.0.0 introduces **breaking changes** in the `crypto` module. Please review your implementation when
+    upgrading.
 
-## Features
+---
 
-KotNexLib provides a wide range of utilities and extensions organized into several categories:
+## Documentation
 
-### String Extensions
+Detailed documentation for each module can be found below:
 
-- Hash any string with various algorithms: `String.hash()`
-- Encrypt/decrypt strings: `String.encrypt()`, `String.decrypt()`
-- Base64 encoding/decoding: `String.toBase64()`, `String.fromBase64()`
-- Compression/decompression: `String.compress()`, `String.decompress()`
-- Enhanced string comparison: `String.containsAll()`, `String.containsOneOf()`, `String.equalsOneOf()`
-- String manipulation: `String.coverString()`, `String.splitEachCharBy()`
+### [Cryptography](docs/crypto/AesEncryptionHelper.md)
 
-### Cryptography
+- [**AES Helper**](docs/crypto/AesEncryptionHelper.md): Secure GCM/CBC encryption, password-based key derivation.
+- [**Blowfish**](docs/crypto/BlowfishEncryptionHelper.md): Legacy support for Blowfish encryption.
 
-- AES encryption with multiple implementation options
-- Blowfish encryption support
-- Secure key generation and management
-- Password-based encryption
+### [Extensions](docs/extensions/StringExtensions.md)
 
-### File Management
+- [**Strings**](docs/extensions/StringExtensions.md): Hashing, Base64, mask/cover, validation, and manipulation.
+- [**ByteArrays**](docs/extensions/ByteArrayExtensions.md): Compression and encoding.
+- [**Collections**](docs/extensions/Collections.md): Advanced Iterable, Map, and Set operations.
+- [**Misc**](docs/extensions/MiscExtensions.md): Helper for Boolean, Numbers, and Generic types.
 
-- Basic folder and file management for desktop/server applications
-- Logging system with `LogFile`
-- Configuration file handling with `ConfigFile`
-- Base folder structure with `BaseFolder`
-- File extensions for common operations
+### [File Management](docs/file/FileManagement.md)
 
-### Collections
+- Structured working directories, JSON configuration management, and automated logging with rotation.
 
-- Enhanced operations for Iterables, Lists, Maps, and Sets
-- Permutation generation
-- Specialized contains and equals methods
+### [Terminal Output](docs/terminal/ColoredPrinters.md)
 
-### Date and Time
+- ANSI colors, styles, progress bars, spinners, and structured tables for professional CLI tools.
 
-- Conversions between Date, Calendar, LocalDate, LocalTime, and LocalDateTime
-- Formatting and parsing utilities
+### [Utilities](docs/utils/CommonUtils.md)
 
-### Terminal Output
+- [**Math**](docs/utils/Math.md): Vector operations and similarity checks.
+- [**IBAN**](docs/utils/IBAN.md): International bank account validation.
+- [**Args**](docs/utils/ArgsInterpreter.md): Command-line argument parsing.
+- [**Common**](docs/utils/CommonUtils.md): `ResultOf` patterns, permutations, and time measurement.
 
-- Enhanced terminal output with `ColoredPrinters`
-- Colored text with various foreground and background colors
-- Text styling (bold, italic, underline, etc.)
-- Progress bars and spinners for long-running tasks
-- Tables with customizable formatting
-- Dynamic text updates and positioning
+### [External Integrations](docs/external/ExternalIntegrations.md)
 
-### Other Utilities
+- Extensions for ObjectBox, Ktor, and QR Code generation.
 
-- `ResultOf` variants for better state/error handling
-- Time measurement with return values: `measureTime { ... }`
-- Runtime environment detection: `runsAsJar`
-- IBAN validation and formatting
-- ObjectBox extensions (dependencies not included)
-- Math utilities and number extensions
-- System property access helpers
-
-## ColoredPrinters Usage
-
-The enhanced `ColoredPrinters` module provides powerful terminal output capabilities:
-
-### Basic Colored Output
-
-```kotlin
-// Print colored text
-CommandLineColors.RED.println("This text is red")
-CommandLineColors.GREEN.println("This text is green")
-
-// Print with background color
-printlnWithBackground("This has a blue background", CommandLineBackgroundColors.BLUE)
-
-// Print with text style
-printlnWithStyle("This text is bold", CommandLineStyles.BOLD)
-
-// Combined formatting
-printlnFormatted(
-  "Custom formatted text",
-  CommandLineColors.YELLOW,
-  CommandLineBackgroundColors.BLUE,
-  CommandLineStyles.UNDERLINE
-)
-```
-
-### Dynamic Displays
-
-```kotlin
-// Progress bar
-val progressBar = ProgressBar(width = 40, prefix = "Loading: ")
-for (i in 0..100) {
-  progressBar.update(i.toDouble() / 100.0)
-  // Do work...
-}
-progressBar.complete()
-
-// Spinner for indeterminate progress
-val spinner = createSpinner("Loading data")
-spinner.start()
-// Do long-running task...
-spinner.stop("Task completed!")
-
-// Update text in-place
-for (i in 0..100 step 10) {
-  updateLine("Processing: $i%", CommandLineColors.PURPLE)
-  // Do work...
-}
-```
-
-### Tables
-
-```kotlin
-val table = Table(
-  headers = listOf("Name", "Age", "City"),
-  columnColors = listOf(CommandLineColors.CYAN, CommandLineColors.YELLOW, CommandLineColors.GREEN)
-)
-table.addRow("John", "25", "New York")
-table.addRow("Alice", "30", "London")
-table.print()
-```
-
-See the example file at `src/main/kotlin/kotnexlib/examples/ColoredPrintersExample.kt` for a complete demonstration.
+---
 
 ## Installation
 
-### Requirements
-
-- JDK 11 or higher
-- Kotlin 1.5 or higher
-
-### Gradle
-
-To integrate KotNexLib into your project using Gradle, add the following to your build configuration:
-
-#### Kotlin DSL (build.gradle.kts)
+### Gradle (Kotlin DSL)
 
 ```kotlin
 repositories {
-    maven("https://jitpack.io")
+    maven {
+        name = "nexus421MavenReleases"
+        url = uri("https://maven.kickner.bayern/releases")
+    }
 }
 
 dependencies {
-    implementation("com.github.nexus421:KotNexLib:3.2.1")
+    implementation("com.github.nexus421:KotNexLib:4.0.0")
 }
 ```
 
-#### Groovy DSL (build.gradle)
+---
 
-```groovy
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-
-dependencies {
-    implementation 'com.github.nexus421:KotNexLib:3.2.1'
-}
-```
-
-Check the [releases page](https://github.com/nexus421/KotNexLib/releases) for the latest version.
-
-## Getting Started
-
-After adding KotNexLib to your project, you can start using its extensions and utilities immediately. Most functions are
-available as extension methods, making them easy to use with your existing code.
-
-### Basic Examples
-
-```kotlin
-// String extensions
-val hashedString = "myPassword".hash()
-val base64String = "Hello World".toBase64()
-val originalString = base64String.fromBase64()
-
-// Cryptography
-val encrypted = AesEncryptionHelper.encryptWithAesAndPassword("sensitive data", "mySecretPassword")
-val decrypted = AesEncryptionHelper.decryptWithAesAndPassword(encrypted!!, "mySecretPassword")
-
-// File management
-val configFile = ConfigFile("myapp.config")
-configFile.setValue("username", "user123")
-val username = configFile.getValue("username")
-
-// Time measurement
-val result = measureTime {
-    // Your code here
-    "Operation result"
-}
-println("Operation took ${result.timeInMillis}ms and returned: ${result.result}")
-```
+<p align="center">
+  Developed with ❤️ for the Kotlin Community.
+</p>
 

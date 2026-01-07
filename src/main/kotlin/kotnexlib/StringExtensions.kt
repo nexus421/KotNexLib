@@ -18,7 +18,7 @@ import java.util.*
 fun String.coverString(start: Int = 1, end: Int = length - 2, coverChar: Char = '*'): String {
     require(start < end) { "Start has to be lower than end!" }
     if (isEmpty()) return this
-    if ((end >= length || start < 0).not()) return this
+    if ((end >= length || start < 0)) return this
 
     val result = toCharArray()
     for (i in indices) {
@@ -83,7 +83,7 @@ fun String.replaceAllMatchingStart(match: Char): String {
     toCharArray().forEachIndexed { index, c ->
         if (c != match) return substring(index)
     }
-    return this
+    return ""
 }
 
 /**
