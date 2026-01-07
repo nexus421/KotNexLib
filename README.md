@@ -22,8 +22,8 @@ applications.
 > [!WARNING]
 > **Migration to 4.0.0**:
 > - The project is moving to a new Maven repository: `https://maven.kickner.bayern/releases`.
-> - Version 4.0.0 introduces **breaking changes** in the `crypto` module. Please review your implementation when
-    upgrading.
+> - Version 4.0.0 introduces **breaking changes** in the `crypto` module.
+> - **Note**: `String.hash` has been moved to the `kotnexlib.crypto` package and may require updated imports.
 
 ---
 
@@ -34,6 +34,7 @@ Detailed documentation for each module can be found below:
 ### [Cryptography](docs/crypto/AesEncryptionHelper.md)
 
 - [**AES Helper**](docs/crypto/AesEncryptionHelper.md): Secure GCM/CBC encryption, password-based key derivation.
+- [**Argon2**](docs/crypto/Argon2Helper.md): Modern password hashing (Argon2id).
 - [**Blowfish**](docs/crypto/BlowfishEncryptionHelper.md): Legacy support for Blowfish encryption.
 
 ### [Extensions](docs/extensions/StringExtensions.md)
@@ -77,7 +78,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nexus421:KotNexLib:4.0.0")
+    implementation("com.github.nexus421:KotNexLib:4.1.0")
 }
 ```
 

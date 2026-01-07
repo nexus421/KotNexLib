@@ -4,7 +4,14 @@ A collection of powerful extension functions for `String`.
 
 #### Hashing
 
-- `hash(HashAlgorithm)`: Hash strings with MD5, SHA-1, SHA-256 (default), etc.
+> [!WARNING]
+> **Breaking Change (v4.0.0)**: The `hash` extensions have been moved to the `kotnexlib.crypto` package.
+> You might need to update your imports to: `import kotnexlib.crypto.*`
+
+- `hash(HashAlgorithm)`: Standard JVM hashing (MD5, SHA-1, SHA-256).
+- `hashBC(HashAlgorithmBC)`: Advanced hashing using **Bouncy Castle** (SHA-3, SHA-512, etc.).
+- `hashIter(HashAlgorithm, iterations)`: Iterative hashing for increased security against brute-force (default 100k
+  iterations).
 - `toBase64()`: Encode to Base64.
 - `fromBase64()`: Decode from Base64.
 

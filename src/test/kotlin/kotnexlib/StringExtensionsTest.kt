@@ -1,5 +1,7 @@
 package kotnexlib
 
+import kotnexlib.crypto.HashAlgorithm
+import kotnexlib.crypto.hash
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.nexus421"
-version = "4.0.0"
+version = "4.1.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -13,6 +13,9 @@ repositories {
 }
 
 dependencies {
+    //https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation(kotlin("reflect"))
     compileOnly("io.objectbox:objectbox-kotlin:5.0.1")
