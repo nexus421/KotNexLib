@@ -1,10 +1,7 @@
 package kotnexlib.crypto
 
-import kotnexlib.compress
+import kotnexlib.*
 import kotnexlib.crypto.BlowfishEncryptionHelper.decryptWithBlowfish
-import kotnexlib.decompress
-import kotnexlib.fromBase64ToByteArray
-import kotnexlib.toBase64
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
@@ -17,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec
  *
  * Note: Use this implementation with caution, as Blowfish may not be sufficient for high-security needs in certain contexts.
  */
+@CriticalAPI("Blowfish is considered insecure and should not be used for new projects.")
 object BlowfishEncryptionHelper {
 
     /**

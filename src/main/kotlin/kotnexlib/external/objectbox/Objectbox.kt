@@ -55,7 +55,6 @@ fun <T> Box<T>.contains(queryCondition: QueryCondition<T>): Boolean {
     }
 }
 
-
 /**
  * Returns the first element that matches the given query condition, or null if no elements match.
  * The used query will be closed afterward.
@@ -64,7 +63,6 @@ fun <T> Box<T>.contains(queryCondition: QueryCondition<T>): Boolean {
  * @return the first matching element, or null if no elements match
  */
 fun <T> Box<T>.findOrNull(queryCondition: QueryCondition<T>): T? = query(queryCondition).build().findFirstAndClose()
-
 
 /**
  * Finds all elements in the box that match the given query condition.

@@ -187,8 +187,8 @@ val base64String = "Hello World".toBase64()
 val originalString = base64String.fromBase64()
 
 // Cryptography
-val encrypted = "sensitive data".encryptWithAesAndPassword("mySecretPassword")
-val decrypted = encrypted.decryptWithAesAndPassword("mySecretPassword")
+val encrypted = AesEncryptionHelper.encryptWithAesAndPassword("sensitive data", "mySecretPassword")
+val decrypted = AesEncryptionHelper.decryptWithAesAndPassword(encrypted!!, "mySecretPassword")
 
 // File management
 val configFile = ConfigFile("myapp.config")
