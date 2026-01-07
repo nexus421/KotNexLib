@@ -56,6 +56,16 @@ enum class HashAlgorithm(val algorithm: String) {
     SHA_512("SHA-512"),
 }
 
+/**
+ * Iteratively hashes the current string a specified number of times using the given hash algorithm.
+ *
+ * @param hashAlgorithm The hash algorithm to use for hashing. Defaults to `HashAlgorithm.SHA_256`.
+ * @param iterations The number of times the string should be hashed. Must be a positive integer. Defaults to 100,000.
+ * @return The resulting hash after the specified number of iterations.
+ */
+fun String.hashIter(hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA_256, iterations: Int = 100_000) =
+    (0..<iterations).fold(this) { acc, _ -> acc.hash(hashAlgorithm) }
+
 inline fun String?.ifNullOrBlankDo(action: () -> Unit) {
     if(isNullOrBlank()) action()
 }
