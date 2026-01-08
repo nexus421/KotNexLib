@@ -78,7 +78,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.nexus421:KotNexLib:4.1.0")
+    implementation("bayern.kickner:KotNexLib:4.1.0")
 }
 ```
 
