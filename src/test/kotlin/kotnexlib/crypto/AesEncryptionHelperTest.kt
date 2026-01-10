@@ -46,16 +46,10 @@ class AesEncryptionHelperTest {
         assertTrue(decryptedResult.isSuccess)
         assertEquals(testPlaintext, decryptedResult.getOrThrow())
 
-        // Helper
-        val helperResult = AesEncryptionHelper.CBC.encryptAndGenerateEverything(testPlaintext)
-        assertNotNull(helperResult)
-        val decryptedHelper = helperResult!!.decrypt().getOrThrow()
-        assertEquals(testPlaintext, decryptedHelper)
-
         // Password Helper
         val pwHelperResult = AesEncryptionHelper.CBC.encryptWithPassword(testPlaintext, password)
         assertNotNull(pwHelperResult)
-        val decryptedPwHelper = pwHelperResult!!.decrypt().getOrThrow()
+        val decryptedPwHelper = pwHelperResult!!.decrypt(password).getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
 
         // Legacy Password Methods (ECB)
@@ -81,36 +75,11 @@ class AesEncryptionHelperTest {
         assertTrue(decryptedResult.isSuccess)
         assertEquals(testPlaintext, decryptedResult.getOrThrow())
 
-        // Helper
-        val helperResult = AesEncryptionHelper.GCM.encryptAndGenerateEverything(testPlaintext)
-        assertNotNull(helperResult)
-        val decryptedHelper = helperResult!!.decrypt().getOrThrow()
-        assertEquals(testPlaintext, decryptedHelper)
-
         // Password Helper
         val pwHelperResult = AesEncryptionHelper.GCM.encryptWithPassword(testPlaintext, password)
         assertNotNull(pwHelperResult)
-        val decryptedPwHelper = pwHelperResult!!.decrypt().getOrThrow()
+        val decryptedPwHelper = pwHelperResult!!.decrypt(password).getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
-    }
-
-    @Test
-    fun testCompression() {
-        val largeText = "Repeat this! ".repeat(100)
-
-        // CBC with compression
-        val cbcEncryption = AesEncryptionHelper.CBC.encryptAndGenerateEverything(largeText, compress = true)
-        assertNotNull(cbcEncryption)
-        assertTrue(cbcEncryption!!.compressed)
-        val decryptedCbc = cbcEncryption.decrypt().getOrThrow()
-        assertEquals(largeText, decryptedCbc)
-
-        // GCM with compression
-        val gcmEncryption = AesEncryptionHelper.GCM.encryptAndGenerateEverything(largeText, compress = true)
-        assertNotNull(gcmEncryption)
-        assertTrue(gcmEncryption!!.compressedBeforeEncryption)
-        val decryptedGcm = gcmEncryption.decrypt().getOrThrow()
-        assertEquals(largeText, decryptedGcm)
     }
 
     @Test

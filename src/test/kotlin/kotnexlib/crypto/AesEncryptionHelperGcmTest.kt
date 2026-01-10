@@ -13,26 +13,11 @@ class AesEncryptionHelperGcmTest {
     fun testGcmEncryptionDecryption() {
         val originalText = "Hello GCM World!"
 
-        // Test with Helper
-        val encryption = AesEncryptionHelper.GCM.encryptAndGenerateEverything(originalText)
-        assertNotNull(encryption)
-        val decryptedResult = encryption!!.decrypt()
-        assertEquals(originalText, decryptedResult.getOrThrow())
-
         // Test with Password Helper
         val password = "StrongPassword123"
         val pwEncryption = AesEncryptionHelper.GCM.encryptWithPassword(originalText, password)
         assertNotNull(pwEncryption)
-        val decryptedPwResult = pwEncryption!!.decrypt()
+        val decryptedPwResult = pwEncryption.decrypt(password)
         assertEquals(originalText, decryptedPwResult.getOrThrow())
-    }
-
-    @Test
-    fun testGcmCompression() {
-        val largeText = "A".repeat(1000)
-        val encryption = AesEncryptionHelper.GCM.encryptAndGenerateEverything(largeText, compress = true)
-        assertNotNull(encryption)
-        val decryptedResult = encryption.decrypt()
-        assertEquals(largeText, decryptedResult.getOrThrow())
     }
 }
