@@ -55,7 +55,7 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
             Triple(it[0].fromBase64ToByteArray(), IvParameterSpec(it[1].fromBase64ToByteArray()), it[2])
         }
         val secretKey = AesEncryptionHelper.Common.generateSecureAesKeyFromPassword(password, salt)
-        return AesEncryptionHelper.CBC.decryptWithAES(encryptedData, secretKey, iv, compress).getOrThrow()
+        return AesEncryptionHelper.CBC.decrypt(encryptedData, secretKey, iv, compress).getOrThrow()
     }
 
     override fun convertToDatabaseValue(entityProperty: String?): String? {
@@ -66,7 +66,7 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
         val salt = AesEncryptionHelper.Common.generateSecureRandom(16)
         val secretKey = AesEncryptionHelper.Common.generateSecureAesKeyFromPassword(password, salt)
         val iv = AesEncryptionHelper.Common.getIVSecureRandom().getOrThrow()
-        val encryptedData = AesEncryptionHelper.CBC.encryptWithAES(entityProperty, secretKey, iv, compress).getOrThrow()
+        val encryptedData = AesEncryptionHelper.CBC.encrypt(entityProperty, secretKey, iv, compress).getOrThrow()
 
         return "${salt.toBase64()}$FILE_SEPERATOR${iv.iv.toBase64()}$FILE_SEPERATOR$encryptedData"
     }

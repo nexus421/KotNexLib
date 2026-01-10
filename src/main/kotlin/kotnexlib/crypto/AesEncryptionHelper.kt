@@ -1,12 +1,6 @@
 package kotnexlib.crypto
 
 import kotnexlib.*
-import kotnexlib.crypto.AesEncryptionHelper.CBC.decryptWithAES
-import kotnexlib.crypto.AesEncryptionHelper.CBC.encryptWithAesAndPasswordHelper
-import kotnexlib.crypto.AesEncryptionHelper.CBC.encryptWithAesHelper
-import kotnexlib.crypto.AesEncryptionHelper.GCM.decryptWithAES
-import kotnexlib.crypto.AesEncryptionHelper.GCM.encryptWithAesAndPasswordHelper
-import kotnexlib.crypto.AesEncryptionHelper.GCM.encryptWithAesHelper
 import java.security.SecureRandom
 import java.security.spec.KeySpec
 import javax.crypto.Cipher
@@ -19,6 +13,12 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 object AesEncryptionHelper {
+
+    private const val FILE_SEPERATOR = "\u001C"
+
+    enum class AESType {
+        CBC, GCM
+    }
 
     /**
      * A utility object providing cryptographic tools for securely managing AES keys, initialization vectors, and nonces.
@@ -97,7 +97,7 @@ object AesEncryptionHelper {
          *
          * [ivParameterSpec] is very important to prevent dictionary attacks.
          *
-         * If you have no idea, you may use [encryptWithAesHelper]. This will generate and explain everything to you.
+         * If you have no idea, you may use [encryptAndGenerateEverything]. This will generate and explain everything to you.
          *
          * @param text the text to encrypt
          * @param secretKey Key for encryption
@@ -106,7 +106,7 @@ object AesEncryptionHelper {
          *
          * @return returns the encrypted String as base64 as [Result].
          */
-        fun encryptWithAES(
+        fun encrypt(
             text: String,
             secretKey: SecretKey,
             ivParameterSpec: IvParameterSpec,
@@ -129,7 +129,7 @@ object AesEncryptionHelper {
          *
          * @return returns the decrypted String as [Result].
          */
-        fun decryptWithAES(
+        fun decrypt(
             encryptedText: String,
             secretKey: SecretKey,
             ivParameterSpec: IvParameterSpec,
@@ -140,25 +140,6 @@ object AesEncryptionHelper {
             val decrypted = String(cipher.doFinal(encryptedText.fromBase64ToByteArray()), Charsets.UTF_8)
 
             if (isCompressed) decrypted.decompress()!! else decrypted
-        }
-
-        /**
-         * This method should help you to easily encrypt this String with a random secure key.
-         *
-         * This String will be encrypted with AES and a 256-Bit strong random key with AES/CBC/PKCS5Padding.
-         * Everything will be randomly generated. Check the result for all used informations used for encryption.
-         *
-         * @param text the text to encrypt
-         * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
-         *
-         * @return [AesEncryption]. Read the doc there for more information. The generated secret key can be found there.
-         */
-        fun encryptWithAesHelper(text: String, compress: Boolean = false): AesEncryption? {
-            val iv = Common.getIVSecureRandom().getOrNull() ?: return null
-            val key = Common.generateAESKey()
-            val encrypted = encryptWithAES(text, key, iv, compress)
-
-            return AesEncryption(encrypted.getOrThrow(), compress, key, null, iv)
         }
 
         /**
@@ -175,73 +156,76 @@ object AesEncryptionHelper {
          *
          * @return [AesEncryption]. Read the doc there for more information.
          */
-        fun encryptWithAesAndPasswordHelper(
+        fun encryptWithPassword(
             text: String,
             password: String,
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
-        ): AesEncryption? {
+        ): AESData? {
             val iv = Common.getIVSecureRandom().getOrNull() ?: return null
-            val key = Common.generateSecureAesKeyFromPassword(password, salt)
-            val encrypted = encryptWithAES(text, key, iv, compress).getOrNull() ?: return null
+            val iterations = 600_000
+            val key = Common.generateSecureAesKeyFromPassword(password, salt, iterations)
+            val encrypted = encrypt(text, key, iv, compress).getOrNull() ?: return null
 
-            return AesEncryption(encrypted, compress, key, salt, iv)
+            return AESData(encrypted, compress, salt, iterations, iv.iv, AESType.CBC)
         }
 
-        /**
-         * Helper class that holds all important information after an encryption with [encryptWithAesHelper].
-         *
-         * [compressedBeforeEncryption]: true, if the result was compressed before encryption
-         * [key] This is a 256-Bit (only in default) secure key with secure random numbers. This is the password that was used for encryption and is
-         * required for decryption. You will need this key for later decryption!
-         * [ivParameterSpec] This is in general not required but highly recommended. So the methods here force you to use one.
-         * This will prevent dictionary attacks and will be used while encryption. So save this as this is also required for decryption.
-         * [salt] If you used the encryption with a password, you are required to use a salt for better stronger encryption. The salt is not required to
-         * keep secret. (but the password is!) So you may store the salt globally or create a new one every time you encrypt.
-         *
-         * @param encryptedText the encrypted text from [encryptWithAesHelper]
-         * @param compressedBeforeEncryption true if the encrypted text was compressed before encryption.
-         * @param key secure key that was used to encrypt the String and is required to decrypt.
-         * @param salt if you encrypted the text with [encryptWithAesAndPasswordHelper] this field will be filled with the used salt. Otherwise, this is null.
-         * @param ivParameterSpec used for randomness to prevent dictionary attacks. Used for encryption and required for decryption.
-         */
-        data class AesEncryption(
-            val encryptedText: String,
-            val compressedBeforeEncryption: Boolean,
-            val key: SecretKey,
-            val salt: ByteArray? = null,
-            val ivParameterSpec: IvParameterSpec
-        ) {
+    }
 
-            /**
-             * Directly decrypts [encryptedText] with [decryptWithAES]
-             */
-            fun decrypt() = decryptWithAES(encryptedText, key, ivParameterSpec, compressedBeforeEncryption)
 
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+    class AESData internal constructor(
+        val encryptedText: String,
+        val compressed: Boolean,
+        val salt: ByteArray,
+        val iterations: Int,
+        val ivOrNonce: ByteArray,
+        val type: AESType
+    ) {
 
-                other as AesEncryption
-
-                if (compressedBeforeEncryption != other.compressedBeforeEncryption) return false
-                if (encryptedText != other.encryptedText) return false
-                if (key != other.key) return false
-                if (!salt.contentEquals(other.salt)) return false
-                if (ivParameterSpec != other.ivParameterSpec) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = compressedBeforeEncryption.hashCode()
-                result = 31 * result + encryptedText.hashCode()
-                result = 31 * result + key.hashCode()
-                result = 31 * result + (salt?.contentHashCode() ?: 0)
-                result = 31 * result + ivParameterSpec.hashCode()
-                return result
+        companion object {
+            fun restore(data: String): Result<AESData> = runCatching {
+                val parts = data.fromBase64().split(FILE_SEPERATOR)
+                AESData(
+                    type = AESType.valueOf(parts[0]),
+                    ivOrNonce = parts[1].fromBase64ToByteArray(),
+                    iterations = parts[2].toInt(),
+                    salt = parts[3].fromBase64ToByteArray(),
+                    compressed = parts[4].toBoolean(),
+                    encryptedText = parts[5]
+                )
             }
         }
+
+        override fun toString() = buildString {
+            append(type.name)
+            append(FILE_SEPERATOR)
+            append(ivOrNonce.toBase64())
+            append(FILE_SEPERATOR)
+            append(iterations)
+            append(FILE_SEPERATOR)
+            append(salt.toBase64())
+            append(FILE_SEPERATOR)
+            append(compressed)
+            append(FILE_SEPERATOR)
+            append(encryptedText)
+        }.toBase64()
+
+        fun decrypt(password: String) = when (type) {
+            AESType.CBC -> CBC.decrypt(
+                encryptedText,
+                Common.generateSecureAesKeyFromPassword(password, salt, iterations),
+                IvParameterSpec(ivOrNonce),
+                compressed
+            )
+
+            AESType.GCM -> GCM.decrypt(
+                encryptedText,
+                Common.generateSecureAesKeyFromPassword(password, salt, iterations),
+                ivOrNonce,
+                compressed
+            )
+        }
+
     }
 
     /**
@@ -259,7 +243,7 @@ object AesEncryptionHelper {
 
         /**
          * Encrypts this String with AES/ECB/PKCS5Padding with the given [password].
-         * Note: This is not as secure as [CBC.encryptWithAES] but simpler. Dictionary attacks are possible.
+         * Note: This is not as secure as [CBC.encrypt] but simpler. Dictionary attacks are possible.
          *
          * @param text the text to encrypt
          * @param password the password this String will be encrypted with. Length must be 16 or 32!
@@ -321,7 +305,7 @@ object AesEncryptionHelper {
          *
          * [nonce] is very important to prevent dictionary attacks. Recommended size is 12 bytes.
          *
-         * If you have no idea, you may use [encryptWithAesHelper]. This will generate and explain everything to you.
+         * If you have no idea, you may use [encryptAndGenerateEverything]. This will generate and explain everything to you.
          *
          * @param text the text to encrypt
          * @param secretKey Key for encryption
@@ -330,7 +314,7 @@ object AesEncryptionHelper {
          *
          * @return returns the encrypted String as base64 as [Result].
          */
-        fun encryptWithAES(
+        fun encrypt(
             text: String,
             secretKey: SecretKey,
             nonce: ByteArray = Common.generateNonce(),
@@ -354,7 +338,7 @@ object AesEncryptionHelper {
          *
          * @return returns the decrypted String as [Result].
          */
-        fun decryptWithAES(
+        fun decrypt(
             encryptedText: String,
             secretKey: SecretKey,
             nonce: ByteArray,
@@ -366,25 +350,6 @@ object AesEncryptionHelper {
             val decrypted = String(cipher.doFinal(encryptedText.fromBase64ToByteArray()), Charsets.UTF_8)
 
             if (isCompressed) decrypted.decompress()!! else decrypted
-        }
-
-        /**
-         * This method should help you to easily encrypt this String with a random secure key.
-         *
-         * This String will be encrypted with AES and a 256-Bit strong random key with AES/GCM/NoPadding.
-         * Everything will be randomly generated. Check the result for all used informations used for encryption.
-         *
-         * @param text the text to encrypt
-         * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
-         *
-         * @return [AesEncryption]. Read the doc there for more information. The generated secret key can be found there.
-         */
-        fun encryptWithAesHelper(text: String, compress: Boolean = false): AesEncryption {
-            val nonce = Common.generateNonce()
-            val key = Common.generateAESKey()
-            val encrypted = encryptWithAES(text, key, nonce, compress)
-
-            return AesEncryption(encrypted.getOrThrow(), compress, key, null, nonce)
         }
 
         /**
@@ -401,71 +366,20 @@ object AesEncryptionHelper {
          *
          * @return [AesEncryption]. Read the doc there for more information.
          */
-        fun encryptWithAesAndPasswordHelper(
+        fun encryptWithPassword(
             text: String,
             password: String,
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
-        ): AesEncryption {
+        ): AESData {
             val nonce = Common.generateNonce()
-            val key = Common.generateSecureAesKeyFromPassword(password, salt)
-            val encrypted = encryptWithAES(text, key, nonce, compress).getOrThrow()
+            val iterations = 600_000
+            val key = Common.generateSecureAesKeyFromPassword(password, salt, iterations)
+            val encrypted = encrypt(text, key, nonce, compress).getOrThrow()
 
-            return AesEncryption(encrypted, compress, key, salt, nonce)
+            return AESData(encrypted, compress, salt, iterations, nonce, AESType.GCM)
         }
 
-        /**
-         * Helper class that holds all important information after an encryption with [encryptWithAesHelper].
-         *
-         * [compressedBeforeEncryption]: true, if the result was compressed before encryption
-         * [key] This is a 256-Bit (only in default) secure key with secure random numbers. This is the password that was used for encryption and is
-         * required for decryption. You will need this key for later decryption!
-         * [nonce] This is in general not required but highly recommended. So the methods here force you to use one.
-         * This will prevent dictionary attacks and will be used while encryption. So save this as this is also required for decryption.
-         * [salt] If you used the encryption with a password, you are required to use a salt for better stronger encryption. The salt is not required to
-         * keep secret. (but the password is!) So you may store the salt globally or create a new one every time you encrypt.
-         *
-         * @param encryptedText the encrypted text from [encryptWithAesHelper]
-         * @param compressedBeforeEncryption true if the encrypted text was compressed before encryption.
-         * @param key secure key that was used to encrypt the String and is required to decrypt.
-         * @param salt if you encrypted the text with [encryptWithAesAndPasswordHelper] this field will be filled with the used salt. Otherwise, this is null.
-         * @param nonce used for randomness to prevent dictionary attacks. Used for encryption and required for decryption.
-         */
-        data class AesEncryption(
-            val encryptedText: String,
-            val compressedBeforeEncryption: Boolean,
-            val key: SecretKey,
-            val salt: ByteArray? = null,
-            val nonce: ByteArray
-        ) {
 
-            /**
-             * Directly decrypts [encryptedText] with [decryptWithAES]
-             */
-            fun decrypt() = decryptWithAES(encryptedText, key, nonce, compressedBeforeEncryption)
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (javaClass != other?.javaClass) return false
-
-                other as AesEncryption
-
-                if (compressedBeforeEncryption != other.compressedBeforeEncryption) return false
-                if (encryptedText != other.encryptedText) return false
-                if (key != other.key) return false
-                if (!salt.contentEquals(other.salt)) return false
-                if (!nonce.contentEquals(other.nonce)) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = compressedBeforeEncryption.hashCode()
-                result = 31 * result + encryptedText.hashCode()
-                result = 31 * result + key.hashCode()
-                result = 31 * result + (salt?.contentHashCode() ?: 0)
-                result = 31 * result + nonce.contentHashCode()
-                return result
-            }
-        }
     }
 }

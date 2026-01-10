@@ -37,23 +37,23 @@ class AesEncryptionHelperTest {
         val iv = AesEncryptionHelper.Common.getIVSecureRandom().getOrThrow()
 
         // Direct AES/CBC
-        val encryptedResult = AesEncryptionHelper.CBC.encryptWithAES(testPlaintext, key, iv)
+        val encryptedResult = AesEncryptionHelper.CBC.encrypt(testPlaintext, key, iv)
         assertTrue(encryptedResult.isSuccess)
         val encryptedBase64 = encryptedResult.getOrThrow()
         assertNotEquals(testPlaintext, encryptedBase64)
 
-        val decryptedResult = AesEncryptionHelper.CBC.decryptWithAES(encryptedBase64, key, iv)
+        val decryptedResult = AesEncryptionHelper.CBC.decrypt(encryptedBase64, key, iv)
         assertTrue(decryptedResult.isSuccess)
         assertEquals(testPlaintext, decryptedResult.getOrThrow())
 
         // Helper
-        val helperResult = AesEncryptionHelper.CBC.encryptWithAesHelper(testPlaintext)
+        val helperResult = AesEncryptionHelper.CBC.encryptAndGenerateEverything(testPlaintext)
         assertNotNull(helperResult)
         val decryptedHelper = helperResult!!.decrypt().getOrThrow()
         assertEquals(testPlaintext, decryptedHelper)
 
         // Password Helper
-        val pwHelperResult = AesEncryptionHelper.CBC.encryptWithAesAndPasswordHelper(testPlaintext, password)
+        val pwHelperResult = AesEncryptionHelper.CBC.encryptWithPassword(testPlaintext, password)
         assertNotNull(pwHelperResult)
         val decryptedPwHelper = pwHelperResult!!.decrypt().getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
@@ -73,22 +73,22 @@ class AesEncryptionHelperTest {
         val nonce = AesEncryptionHelper.Common.generateNonce()
 
         // Direct AES/GCM
-        val encryptedResult = AesEncryptionHelper.GCM.encryptWithAES(testPlaintext, key, nonce)
+        val encryptedResult = AesEncryptionHelper.GCM.encrypt(testPlaintext, key, nonce)
         assertTrue(encryptedResult.isSuccess)
         val encryptedBase64 = encryptedResult.getOrThrow()
 
-        val decryptedResult = AesEncryptionHelper.GCM.decryptWithAES(encryptedBase64, key, nonce)
+        val decryptedResult = AesEncryptionHelper.GCM.decrypt(encryptedBase64, key, nonce)
         assertTrue(decryptedResult.isSuccess)
         assertEquals(testPlaintext, decryptedResult.getOrThrow())
 
         // Helper
-        val helperResult = AesEncryptionHelper.GCM.encryptWithAesHelper(testPlaintext)
+        val helperResult = AesEncryptionHelper.GCM.encryptAndGenerateEverything(testPlaintext)
         assertNotNull(helperResult)
         val decryptedHelper = helperResult!!.decrypt().getOrThrow()
         assertEquals(testPlaintext, decryptedHelper)
 
         // Password Helper
-        val pwHelperResult = AesEncryptionHelper.GCM.encryptWithAesAndPasswordHelper(testPlaintext, password)
+        val pwHelperResult = AesEncryptionHelper.GCM.encryptWithPassword(testPlaintext, password)
         assertNotNull(pwHelperResult)
         val decryptedPwHelper = pwHelperResult!!.decrypt().getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
@@ -99,14 +99,14 @@ class AesEncryptionHelperTest {
         val largeText = "Repeat this! ".repeat(100)
 
         // CBC with compression
-        val cbcEncryption = AesEncryptionHelper.CBC.encryptWithAesHelper(largeText, compress = true)
+        val cbcEncryption = AesEncryptionHelper.CBC.encryptAndGenerateEverything(largeText, compress = true)
         assertNotNull(cbcEncryption)
-        assertTrue(cbcEncryption!!.compressedBeforeEncryption)
+        assertTrue(cbcEncryption!!.compressed)
         val decryptedCbc = cbcEncryption.decrypt().getOrThrow()
         assertEquals(largeText, decryptedCbc)
 
         // GCM with compression
-        val gcmEncryption = AesEncryptionHelper.GCM.encryptWithAesHelper(largeText, compress = true)
+        val gcmEncryption = AesEncryptionHelper.GCM.encryptAndGenerateEverything(largeText, compress = true)
         assertNotNull(gcmEncryption)
         assertTrue(gcmEncryption!!.compressedBeforeEncryption)
         val decryptedGcm = gcmEncryption.decrypt().getOrThrow()
@@ -122,10 +122,10 @@ class AesEncryptionHelperTest {
         // Invalid Base64 for decryption
         val invalidBase64 = "NotBase64!!!"
 
-        val cbcResult = AesEncryptionHelper.CBC.decryptWithAES(invalidBase64, key, iv)
+        val cbcResult = AesEncryptionHelper.CBC.decrypt(invalidBase64, key, iv)
         assertTrue(cbcResult.isFailure)
 
-        val gcmResult = AesEncryptionHelper.GCM.decryptWithAES(invalidBase64, key, nonce)
+        val gcmResult = AesEncryptionHelper.GCM.decrypt(invalidBase64, key, nonce)
         assertTrue(gcmResult.isFailure)
 
         // Wrong password length for direct methods
