@@ -17,6 +17,10 @@ import javax.crypto.spec.IvParameterSpec
  * function (PBKDF2) to derive encryption keys from the specified password.
  * The encryption process involves securely generating a salt and IV for each operation.
  *
+ * Use it as an annotation like
+ * @Convert(converter = CryptoStringEncryptionWithPassword::class, dbType = String::class)
+ * val myEncryptedField: String
+ *
  * Note:
  * - The `password` property must be set before performing any encryption or decryption operations.
  * - The `compress` property controls whether the input data is compressed during encryption
