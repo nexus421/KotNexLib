@@ -3,7 +3,7 @@ package kotnexlib.external.objectbox
 
 import io.objectbox.converter.PropertyConverter
 import kotnexlib.ExperimentalKotNexLibAPI
-import kotnexlib.crypto.AesEncryptionHelper
+import kotnexlib.crypto.AES
 import kotnexlib.fromBase64ToByteArray
 import kotnexlib.toBase64
 import javax.crypto.spec.IvParameterSpec
@@ -54,8 +54,8 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
         val (salt, iv, encryptedData) = databaseValue.split(FILE_SEPERATOR).let {
             Triple(it[0].fromBase64ToByteArray(), IvParameterSpec(it[1].fromBase64ToByteArray()), it[2])
         }
-        val secretKey = AesEncryptionHelper.Common.generateSecureAesKeyFromPassword(password, salt)
-        return AesEncryptionHelper.CBC.decrypt(encryptedData, secretKey, iv, compress).getOrThrow()
+        val secretKey = AES.Common.generateSecureAesKeyFromPassword(password, salt)
+        return AES.CBC.decrypt(encryptedData, secretKey, iv, compress).getOrThrow()
     }
 
     override fun convertToDatabaseValue(entityProperty: String?): String? {
@@ -63,10 +63,10 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
         if (entityProperty.isNullOrBlank()) return null
 
         //In DB speichern
-        val salt = AesEncryptionHelper.Common.generateSecureRandom(16)
-        val secretKey = AesEncryptionHelper.Common.generateSecureAesKeyFromPassword(password, salt)
-        val iv = AesEncryptionHelper.Common.getIVSecureRandom().getOrThrow()
-        val encryptedData = AesEncryptionHelper.CBC.encrypt(entityProperty, secretKey, iv, compress).getOrThrow()
+        val salt = AES.Common.generateSecureRandom(16)
+        val secretKey = AES.Common.generateSecureAesKeyFromPassword(password, salt)
+        val iv = AES.Common.generateIV().getOrThrow()
+        val encryptedData = AES.CBC.encrypt(entityProperty, secretKey, iv, compress).getOrThrow()
 
         return "${salt.toBase64()}$FILE_SEPERATOR${iv.iv.toBase64()}$FILE_SEPERATOR$encryptedData"
     }

@@ -54,7 +54,7 @@ object Argon2Helper {
         require(parallelism >= 1) { "Parallelism must be at least 1." }
 
         // Generate a secure random salt
-        val salt = AesEncryptionHelper.Common.generateSecureRandom()
+        val salt = AES.Common.generateSecureRandom()
 
         // Configure Argon2id (Hybrid mode - best against side-channel & GPU attacks)
         val params = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)

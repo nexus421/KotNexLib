@@ -12,7 +12,12 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-object AesEncryptionHelper {
+/**
+ * Provides a set of utilities and methods for securely handling AES encryption and decryption.
+ * This object supports both CBC and GCM modes, offering methods for key generation, IV and nonce creation,
+ * and the encryption and decryption of data.
+ */
+object AES {
 
     private const val FILE_SEPERATOR = "\u001C"
 
@@ -62,12 +67,12 @@ object AesEncryptionHelper {
         /**
          * Generates a new and secure Initial Vector (IV) for the given [algorithm]. Defaults to AES.
          */
-        fun getIVSecureRandom(algorithm: String = "AES"): Result<IvParameterSpec> = runCatching {
+        fun generateIV(algorithm: String = "AES"): Result<IvParameterSpec> = runCatching {
             IvParameterSpec(generateSecureRandom(Cipher.getInstance(algorithm).blockSize))
         }
 
         /**
-         * Creates a secure random byte array with the given [size]
+         * Creates a secure random byte array (salt) with the given [size].
          */
         fun generateSecureRandom(size: Int = 16) =
             ByteArray(size).apply { SecureRandom.getInstanceStrong().nextBytes(this) }
@@ -96,8 +101,6 @@ object AesEncryptionHelper {
          * Encrypt this String with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
          *
          * [ivParameterSpec] is very important to prevent dictionary attacks.
-         *
-         * If you have no idea, you may use [encryptAndGenerateEverything]. This will generate and explain everything to you.
          *
          * @param text the text to encrypt
          * @param secretKey Key for encryption
@@ -151,10 +154,10 @@ object AesEncryptionHelper {
          * @param text the text to encrypt
          * @param password to encrypt the String with. This has to be kept as a secret!
          * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 16 Byte array.
-         * You can reuse the salt or generate a new one any time (recomended).
+         * You can reuse the salt or generate a new one any time (recommended).
          * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
          *
-         * @return [AesEncryption]. Read the doc there for more information.
+         * @return [AESData]. Read the doc there for more information.
          */
         fun encryptWithPassword(
             text: String,
@@ -162,7 +165,7 @@ object AesEncryptionHelper {
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
         ): AESData? {
-            val iv = Common.getIVSecureRandom().getOrNull() ?: return null
+            val iv = Common.generateIV().getOrNull() ?: return null
             val iterations = 600_000
             val key = Common.generateSecureAesKeyFromPassword(password, salt, iterations)
             val encrypted = encrypt(text, key, iv, compress).getOrNull() ?: return null
@@ -172,7 +175,16 @@ object AesEncryptionHelper {
 
     }
 
-
+    /**
+     * A data class representing encrypted AES data and its associated metadata.
+     *
+     * @property encryptedText The encrypted text as a Base64-encoded string.
+     * @property compressed A boolean indicating whether the original data was compressed before encryption.
+     * @property salt The salt used during key generation for the AES encryption process.
+     * @property iterations The number of iterations used in the key derivation process.
+     * @property ivOrNonce The initialization vector (IV) or nonce used for encryption.
+     * @property type The type of AES encryption used (CBC or GCM).
+     */
     class AESData internal constructor(
         val encryptedText: String,
         val compressed: Boolean,
@@ -183,6 +195,15 @@ object AesEncryptionHelper {
     ) {
 
         companion object {
+
+            /**
+             * Restores an AESData object from its Base64-encoded [AES.AESData.toString] representation.
+             *
+             * The input string must contain serialized fields of the AESData object, separated by a predefined file separator.
+             *
+             * @param data A Base64-encoded string containing the serialized fields of an AESData object.
+             * @return A Result object containing the restored AESData instance or an exception if restoration fails.
+             */
             fun restore(data: String): Result<AESData> = runCatching {
                 val parts = data.fromBase64().split(FILE_SEPERATOR)
                 AESData(
@@ -196,6 +217,29 @@ object AesEncryptionHelper {
             }
         }
 
+        /**
+         * Converts the AESData object into its Base64-encoded string representation.
+         *
+         * The string representation includes the following serialized fields in order:
+         * - The type name of the AESData object.
+         * - A file separator.
+         * - The Base64-encoded initialization vector (IV) or nonce.
+         * - A file separator.
+         * - The iterations count of the cryptographic operation.
+         * - A file separator.
+         * - The Base64-encoded salt.
+         * - A file separator.
+         * - A flag indicating whether the data is compressed.
+         * - A file separator.
+         * - The encrypted text.
+         *
+         * The entire concatenated string is encoded into a single Base64 string.
+         *
+         * Through this string representation, the AESData object can be restored from its serialized form very easy.
+         * This is safe to store (e.g. in a database).
+         *
+         * @return A Base64-encoded string representation of the AESData object.
+         */
         override fun toString() = buildString {
             append(type.name)
             append(FILE_SEPERATOR)
@@ -210,6 +254,16 @@ object AesEncryptionHelper {
             append(encryptedText)
         }.toBase64()
 
+        /**
+         * Decrypts the encrypted text within the AESData object using the specified decryption type (e.g., AES/CBC or AES/GCM)
+         * and a derived encryption key from the provided password.
+         *
+         * The decryption process involves deriving a secure AES key from the given password, salt, and iteration count,
+         * and using the corresponding AES decryption algorithm with the stored initialization vector (IV) or nonce.
+         * If the data was compressed during encryption, decompression will be applied during decryption.
+         *
+         * @param password The password used to derive the encryption key for decryption.
+         */
         fun decrypt(password: String) = when (type) {
             AESType.CBC -> CBC.decrypt(
                 encryptedText,
@@ -251,7 +305,7 @@ object AesEncryptionHelper {
          *
          * @return the encrypted string as Base64 as [Result].
          */
-        fun encryptWithAesAndPassword(
+        fun encryptWithPassword(
             text: String,
             password: String,
             compress: Boolean = false
@@ -272,7 +326,7 @@ object AesEncryptionHelper {
          *
          * @return the decrypted string as [Result].
          */
-        fun decryptWithAesAndPassword(
+        fun decryptWithPassword(
             encryptedText: String,
             password: String,
             isCompressed: Boolean = false
@@ -304,8 +358,6 @@ object AesEncryptionHelper {
          * Encrypt this String with a given [secretKey] and a given [nonce] with AES/GCM/NoPadding.
          *
          * [nonce] is very important to prevent dictionary attacks. Recommended size is 12 bytes.
-         *
-         * If you have no idea, you may use [encryptAndGenerateEverything]. This will generate and explain everything to you.
          *
          * @param text the text to encrypt
          * @param secretKey Key for encryption
@@ -361,10 +413,10 @@ object AesEncryptionHelper {
          * @param text the text to encrypt
          * @param password to encrypt the String with. This has to be kept as a secret!
          * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 16 Byte array.
-         * You can reuse the salt or generate a new one any time (recomended).
+         * You can reuse the salt or generate a new one any time (recommended).
          * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
          *
-         * @return [AesEncryption]. Read the doc there for more information.
+         * @return [AESData]. Read the doc there for more information.
          */
         fun encryptWithPassword(
             text: String,

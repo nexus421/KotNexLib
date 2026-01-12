@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
-class AesEncryptionHelperGcmTest {
+class AESGcmTest {
 
     @Test
     fun testGcmEncryptionDecryption() {
@@ -15,7 +15,7 @@ class AesEncryptionHelperGcmTest {
 
         // Test with Password Helper
         val password = "StrongPassword123"
-        val pwEncryption = AesEncryptionHelper.GCM.encryptWithPassword(originalText, password)
+        val pwEncryption = AES.GCM.encryptWithPassword(originalText, password)
         assertNotNull(pwEncryption)
         val decryptedPwResult = pwEncryption.decrypt(password)
         assertEquals(originalText, decryptedPwResult.getOrThrow())
