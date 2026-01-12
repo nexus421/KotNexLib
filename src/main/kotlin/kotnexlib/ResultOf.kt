@@ -50,3 +50,17 @@ sealed class ResultOfTripple<out T, out V, out M> {
     val isWarning: Boolean get() = this is Warning
     val isError: Boolean get() = this is Error
 }
+
+/**
+ * Will always be executed after [runCatching] was called.
+ * It gives you a more traditional way to handle exceptions like try/catch/finally.
+ *
+ * This should always be used as the last block!
+ *
+ * @param runCatching If true, the [doThis] block will be executed in a try-catch block. Exceptions will be caught and ignored. Use this if you want to chain multiple [finally] results and avoid errors within one [finally] block to avoid running the others.
+ * @param doThis The action to be executed.
+ */
+inline fun <T> Result<T>.finally(runCatching: Boolean = false, doThis: Result<T>.() -> Unit): Result<T> {
+    if (runCatching) tryOrNull { doThis() } else doThis()
+    return this
+}
