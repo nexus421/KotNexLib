@@ -1,5 +1,6 @@
 package file
 
+import kotnexlib.ExperimentalKotNexLibAPI
 import kotnexlib.ResultOf2
 import java.io.*
 import java.util.zip.ZipEntry
@@ -68,6 +69,7 @@ fun File.zipFiles(
  * ToDo: Es wird dadurch keine gültige Zip erstellt. Es scheint der Header oder so zu fehlen.
  *  Muss noch geprüft werden, warum das passiert.
  */
+@ExperimentalKotNexLibAPI
 private fun File.zipFilesToByteArray(): ResultOf2<ByteArray, String> {
     val byteArrayOutputStream = ByteArrayOutputStream()
     return ZipOutputStream(BufferedOutputStream(byteArrayOutputStream)).use { zipOut ->

@@ -4,6 +4,8 @@ import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 /**
  * Given string will be covered with [coverChar] from [start] to [end].
@@ -34,7 +36,13 @@ inline fun String?.ifNullOrBlankDo(action: () -> Unit) {
     if(isNullOrBlank()) action()
 }
 
-fun String?.isNotNullOrBlank() = !isNullOrBlank()
+@OptIn(ExperimentalContracts::class)
+fun String?.isNotNullOrBlank(): Boolean {
+    contract {
+        returns(true) implies (this@isNotNullOrBlank != null)
+    }
+    return !this.isNullOrBlank()
+}
 
 /**
  * If this string is null or blank, the action result is returned. Otherwise this will be returned
