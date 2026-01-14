@@ -12,10 +12,10 @@ class BlowfishEncryptionHelperTest {
         val originalText = "Hello Blowfish!"
         val password = "secretPassword"
 
-        val encrypted = BlowfishEncryptionHelper.encryptWithBlowfish(originalText, password)
+        val encrypted = BlowfishEncryption.encrypt(originalText, password)
         assertNotNull(encrypted)
 
-        val decrypted = BlowfishEncryptionHelper.decryptWithBlowfish(encrypted!!, password)
+        val decrypted = BlowfishEncryption.decrypt(encrypted!!, password)
         assertEquals(originalText, decrypted)
     }
 
@@ -24,10 +24,10 @@ class BlowfishEncryptionHelperTest {
         val largeText = "A".repeat(1000)
         val password = "secretPassword"
 
-        val encrypted = BlowfishEncryptionHelper.encryptWithBlowfish(largeText, password, compress = true)
+        val encrypted = BlowfishEncryption.encrypt(largeText, password, compress = true)
         assertNotNull(encrypted)
 
-        val decrypted = BlowfishEncryptionHelper.decryptWithBlowfish(encrypted!!, password, isCompressed = true)
+        val decrypted = BlowfishEncryption.decrypt(encrypted!!, password, isCompressed = true)
         assertEquals(largeText, decrypted)
     }
 
@@ -37,11 +37,11 @@ class BlowfishEncryptionHelperTest {
         val password = "secretPassword"
         val wrongPassword = "wrongPassword"
 
-        val encrypted = BlowfishEncryptionHelper.encryptWithBlowfish(originalText, password)
+        val encrypted = BlowfishEncryption.encrypt(originalText, password)
         assertNotNull(encrypted)
 
         // Decryption with wrong password should fail or return wrong result
-        val decrypted = BlowfishEncryptionHelper.decryptWithBlowfish(encrypted!!, wrongPassword)
+        val decrypted = BlowfishEncryption.decrypt(encrypted!!, wrongPassword)
         assertNotEquals(originalText, decrypted)
     }
 
@@ -50,10 +50,10 @@ class BlowfishEncryptionHelperTest {
         val originalBytes = "Some bytes".toByteArray()
         val password = "password"
 
-        val encryptedResult = BlowfishEncryptionHelper.encryptWithBlowfish(originalBytes, password)
+        val encryptedResult = BlowfishEncryption.encrypt(originalBytes, password)
         assertTrue(encryptedResult.isSuccess)
 
-        val decryptedResult = BlowfishEncryptionHelper.decryptWithBlowfish(encryptedResult.getOrThrow(), password)
+        val decryptedResult = BlowfishEncryption.decrypt(encryptedResult.getOrThrow(), password)
         assertTrue(decryptedResult.isSuccess)
         assertArrayEquals(originalBytes, decryptedResult.getOrThrow())
     }

@@ -1,7 +1,7 @@
 package kotnexlib.crypto
 
 import kotnexlib.*
-import kotnexlib.crypto.BlowfishEncryptionHelper.decryptWithBlowfish
+import kotnexlib.crypto.BlowfishEncryption.decrypt
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
@@ -15,12 +15,12 @@ import javax.crypto.spec.SecretKeySpec
  * Note: Use this implementation with caution, as Blowfish may not be sufficient for high-security needs in certain contexts.
  */
 @CriticalAPI("Blowfish is considered insecure and should not be used for new projects.")
-object BlowfishEncryptionHelper {
+object BlowfishEncryption {
 
     /**
      * Simple method to encrypt this String with the Blowfish algorithm.
      *
-     * Decompress with [decryptWithBlowfish]
+     * Decompress with [decrypt]
      *
      * WARNING: This is not as secure as AES/CBC/PKCS5Padding because the key is only 64 bit long. Whatever: This is still
      * a secure algorithm.
@@ -30,8 +30,8 @@ object BlowfishEncryptionHelper {
      *
      * @return the final encrypted String as Base64 or null on any error.
      */
-    fun encryptWithBlowfish(textToEncrypt: String, password: String, compress: Boolean = false): String? {
-        return encryptWithBlowfish(textToEncrypt.toByteArray(), password, compress).getOrNull()?.toBase64()
+    fun encrypt(textToEncrypt: String, password: String, compress: Boolean = false): String? {
+        return encrypt(textToEncrypt.toByteArray(), password, compress).getOrNull()?.toBase64()
     }
 
     /**
@@ -43,7 +43,7 @@ object BlowfishEncryptionHelper {
      * @param compress If `true`, compresses the byte array before encrypting. Default is `false`.
      * @return A `Result` containing the encrypted byte array if successful, or an exception if an error occurs.
      */
-    fun encryptWithBlowfish(bytesToEncrypt: ByteArray, password: String, compress: Boolean = false): Result<ByteArray> =
+    fun encrypt(bytesToEncrypt: ByteArray, password: String, compress: Boolean = false): Result<ByteArray> =
         runCatching {
 
             val keyData: ByteArray = password.toByteArray()
@@ -64,8 +64,8 @@ object BlowfishEncryptionHelper {
      *
      * @return the decrypted String or null on any error.
      */
-    fun decryptWithBlowfish(textToDecrypt: String, password: String, isCompressed: Boolean = false): String? {
-        return decryptWithBlowfish(textToDecrypt.fromBase64ToByteArray(), password, isCompressed)
+    fun decrypt(textToDecrypt: String, password: String, isCompressed: Boolean = false): String? {
+        return decrypt(textToDecrypt.fromBase64ToByteArray(), password, isCompressed)
             .getOrNull()?.toString(Charsets.UTF_8)
     }
 
@@ -78,7 +78,7 @@ object BlowfishEncryptionHelper {
      * @param isCompressed A flag indicating whether the decrypted data should be decompressed. Defaults to `false`.
      * @return A `Result` containing the decrypted byte array, or an exception if decryption fails.
      */
-    fun decryptWithBlowfish(
+    fun decrypt(
         bytesToDecrypt: ByteArray,
         password: String,
         isCompressed: Boolean = false

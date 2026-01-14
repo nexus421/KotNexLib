@@ -4,6 +4,9 @@ import io.objectbox.converter.PropertyConverter
 import kotnexlib.ExperimentalKotNexLibAPI
 import kotnexlib.crypto.Argon2Helper
 import kotnexlib.crypto.hash
+import kotnexlib.external.objectbox.ObjectBoxArgon2HashStringConverter.convertToDatabaseValue
+import kotnexlib.external.objectbox.ObjectBoxArgon2HashStringConverter.convertToEntityProperty
+import kotnexlib.external.objectbox.ObjectBoxArgon2HashStringConverter.toHash
 
 /**
  * A PropertyConverter implementation for hashing strings before saving them to a database.
@@ -12,18 +15,13 @@ import kotnexlib.crypto.hash
  * hashing the string values during the database storage process. This is particularly useful
  * for cases where data integrity and security need to be ensured by storing only hashed values.
  *
- * Conversion workflow:
- * - When reading from the database (`convertToEntityProperty`), the data remains unchanged (no decryption or modification).
- * - When writing to the database (`convertToDatabaseValue`), the string values are hashed using a predefined hashing algorithm
- *   to ensure secure and immutable storage.
- *
  *  Use it as an annotation like
  *  @Convert(converter = ObjectBoxHashStringConverter::class, dbType = String::class)
  *  val myHashedField: String
  *
  * Important Notes:
  * - The hashing algorithm used is defined in the `toHash` function, which internally employs a robust hashing mechanism.
- * - The underlying hashing process is based on the `hash` extension function, which defaults to the SHA-256 algorithm.
+ * - The underlying hashing process is based on the [hash] extension function, which defaults to the SHA-256 algorithm.
  * - This class is designed to handle nullable values gracefully.
  */
 @ExperimentalKotNexLibAPI
@@ -36,6 +34,8 @@ object ObjectBoxHashStringConverter : PropertyConverter<String?, String?> {
     /**
      * Converts the input string to its hashed representation as stored for the database.
      *
+     * You can use this method also to create a new hash to compare with the stored one!
+     *
      * @param input The string to be hashed.
      * @return The hashed representation of the input string.
      */
@@ -43,25 +43,18 @@ object ObjectBoxHashStringConverter : PropertyConverter<String?, String?> {
 }
 
 /**
- * A utility object implementing `PropertyConverter` for hashing strings using the Argon2id algorithm
- * before storing them in a database. This is optimized for usage with ObjectBox.
+ * A utility object for Objectbox for hashing strings using the Argon2id algorithm before storing them in the database.
  *
- * This converter is specifically tailored to handle the conversion of strings:
- * - From the database format to the app's entity property format.
- * - From the app's entity property format to a secure hashed representation optimized for storage.
- *
- * ## Features:
- * - Converts plain text strings to Argon2id hashed strings optimized for mobile devices.
- * - Ensures compatibility with ObjectBox database by implementing the `PropertyConverter` interface.
+ * Converts plain text strings to Argon2id hashed strings optimized for mobile devices. So you don't have to hash
+ * the String beforehand.
  *
  * Use it as an annotation like
  * @Convert(converter = ObjectBoxArgon2HashStringConverter::class, dbType = String::class)
  * val myHashedField: String
  *
- * ## Methods:
- * - `convertToEntityProperty`: Returns the database value as is, without any transformation.
- * - `convertToDatabaseValue`: Converts the input string to a secure Argon2id hash.
- * - `toHash`: A helper function that generates a secure hash using `Argon2Helper.hashForMobileDevices`.
+ * - [convertToEntityProperty]: Returns the hash, previously generated.
+ * - [convertToDatabaseValue]: Converts the input string to a secure Argon2id hash.
+ * - [toHash]: A helper function that generates a secure hash using [Argon2Helper.hashForMobileDevices].
  */
 @ExperimentalKotNexLibAPI
 object ObjectBoxArgon2HashStringConverter : PropertyConverter<String?, String?> {
@@ -72,6 +65,8 @@ object ObjectBoxArgon2HashStringConverter : PropertyConverter<String?, String?> 
 
     /**
      * Converts the input string to its hashed representation as stored for the database.
+     *
+     * You can use this method also to create a new hash to compare with the stored one!
      *
      * @param input The string to be hashed.
      * @return The hashed representation of the input string.
