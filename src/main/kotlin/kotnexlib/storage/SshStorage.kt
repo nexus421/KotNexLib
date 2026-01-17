@@ -5,6 +5,7 @@ import kotnexlib.ResultOfEmpty
 import kotnexlib.tryOrNull
 import java.io.File
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
@@ -12,8 +13,8 @@ data class RemoteFile(
     val absolutePath: String,
     val isDirectory: Boolean,
     val size: Long,
-    val lastModified: LocalDateTime? = null,
-    val creationDate: LocalDateTime? = null
+    val lastModified: Long? = null,
+//    val creationDate: Long? = null
 )
 
 object SshStorage {
@@ -125,6 +126,9 @@ object SshStorage {
 
                     val lastModified = tryOrNull {
                         LocalDateTime.parse("$dateStr $timeStr", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                            .atZone(ZoneOffset.UTC)
+                            .toInstant()
+                            .toEpochMilli()
                     }
 
                     val cleanDirPath = directoryPath.removeTrailingSlash()
