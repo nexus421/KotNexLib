@@ -50,14 +50,14 @@ class AESTest {
         val aesData = AES.CBC.encryptWithPassword(testPlaintext, password)
         assertNotNull(aesData)
         assertEquals(AES.AESType.CBC, aesData!!.type)
-        val decryptedPwHelper = aesData.decrypt(password).getOrThrow()
+        val decryptedPwHelper = aesData.decryptAsString(password).getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
 
         // Compression test
         val compressedData = AES.CBC.encryptWithPassword(testPlaintext, password, compress = true)
         assertNotNull(compressedData)
         assertTrue(compressedData!!.compressed)
-        assertEquals(testPlaintext, compressedData.decrypt(password).getOrThrow())
+        assertEquals(testPlaintext, compressedData.decryptAsString(password).getOrThrow())
 
         // Legacy Password Methods (ECB)
         val legacyPassword = "1234567812345678" // 16 chars
@@ -86,13 +86,13 @@ class AESTest {
         val aesData = AES.GCM.encryptWithPassword(testPlaintext, password)
         assertNotNull(aesData)
         assertEquals(AES.AESType.GCM, aesData.type)
-        val decryptedPwHelper = aesData.decrypt(password).getOrThrow()
+        val decryptedPwHelper = aesData.decryptAsString(password).getOrThrow()
         assertEquals(testPlaintext, decryptedPwHelper)
 
         // Compression test
         val compressedData = AES.GCM.encryptWithPassword(testPlaintext, password, compress = true)
         assertTrue(compressedData.compressed)
-        assertEquals(testPlaintext, compressedData.decrypt(password).getOrThrow())
+        assertEquals(testPlaintext, compressedData.decryptAsString(password).getOrThrow())
     }
 
     @Test
@@ -109,7 +109,7 @@ class AESTest {
         assertArrayEquals(cbcData.salt, restoredCbcData.salt)
         assertArrayEquals(cbcData.ivOrNonce, restoredCbcData.ivOrNonce)
 
-        assertEquals(testPlaintext, restoredCbcData.decrypt(password).getOrThrow())
+        assertEquals(testPlaintext, restoredCbcData.decryptAsString(password).getOrThrow())
 
         // Test GCM Serialization
         val gcmData = AES.GCM.encryptWithPassword(testPlaintext, password)
@@ -117,7 +117,7 @@ class AESTest {
         val restoredGcmData = AES.AESData.restore(gcmString).getOrThrow()
 
         assertEquals(AES.AESType.GCM, restoredGcmData.type)
-        assertEquals(testPlaintext, restoredGcmData.decrypt(password).getOrThrow())
+        assertEquals(testPlaintext, restoredGcmData.decryptAsString(password).getOrThrow())
     }
 
     @Test

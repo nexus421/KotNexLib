@@ -510,7 +510,7 @@ object AES {
             password: String,
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
-        ): AESData = encryptWithPassword(text, password, salt, compress)
+        ): AESData = encryptWithPassword(text.toByteArray(), password, salt, compress)
 
         /**
          * This method should help you to easily encrypt this ByteArray with a password.

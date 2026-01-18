@@ -17,7 +17,7 @@ class AESGcmTest {
         val password = "StrongPassword123"
         val pwEncryption = AES.GCM.encryptWithPassword(originalText, password)
         assertNotNull(pwEncryption)
-        val decryptedPwResult = pwEncryption.decrypt(password)
+        val decryptedPwResult = pwEncryption.decryptAsString(password)
         assertEquals(originalText, decryptedPwResult.getOrThrow())
     }
 }

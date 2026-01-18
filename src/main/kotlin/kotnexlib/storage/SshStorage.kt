@@ -181,7 +181,10 @@ object SshStorage {
         val tempFile = File.createTempFile("kotnexlib_temp", ".tmp")
         try {
             tempFile.writeBytes(byteArray)
-            return upload(tempFile, destinationPath + File.separator + filename)
+            val remoteTarget = if (destinationPath.isNotEmpty()) {
+                destinationPath.removeTrailingSlash() + "/" + filename
+            } else filename
+            return upload(tempFile, remoteTarget)
         } finally {
             tempFile.delete()
         }
@@ -227,7 +230,7 @@ object SshStorage {
             add("-o")
             add("StrictHostKeyChecking=accept-new")
             add(fileToUpload.absolutePath)
-            add("$user@$host:${remoteTarget.removeStartingSlash()}")
+            add("$user@$host:${remoteTarget.removeStartingSlash().replace("//", "/")}")
         }
 
         return executeCommand(command)
@@ -284,7 +287,7 @@ object SshStorage {
             "-i", sshKey.absolutePath,
             "-o", "StrictHostKeyChecking=accept-new",
             "$user@$host",
-            "$rmCommand ${remotePath.removeStartingSlash()}"
+            "$rmCommand ${remotePath.removeStartingSlash().replace("//", "/")}"
         )
 
         return executeCommand(command)
@@ -314,7 +317,7 @@ object SshStorage {
             add(sshKey.absolutePath)
             add("-o")
             add("StrictHostKeyChecking=accept-new")
-            add("$user@$host:${remotePath.removeStartingSlash()}")
+            add("$user@$host:${remotePath.removeStartingSlash().replace("//", "/")}")
             add(localDestination.absolutePath)
         }
 
@@ -341,7 +344,7 @@ object SshStorage {
             "-i", sshKey.absolutePath,
             "-o", "StrictHostKeyChecking=accept-new",
             "$user@$host",
-            "ls -la --time-style=long-iso ${directoryPath.removeStartingSlash()}"
+            "ls -la --time-style=long-iso ${directoryPath.removeStartingSlash().replace("//", "/")}"
         )
 
         return try {
