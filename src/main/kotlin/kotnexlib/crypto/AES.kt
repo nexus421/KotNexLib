@@ -146,6 +146,31 @@ object AES {
         }
 
         /**
+         * Decrypt this ByteArray with a given [secretKey] and a given [ivParameterSpec] with AES/CBC/PKCS5Padding.
+         *
+         * You need the same [secretKey] and [ivParameterSpec] that were used while encryption!
+         *
+         * @param encryptedText the encrypted text to decrypt
+         * @param secretKey Key for encryption
+         * @param ivParameterSpec iv for randomness during generation
+         * @param isCompressed if set to true, this String will be first decrypted and decompressed afterward. Use this if you encrypted with compression.
+         *
+         * @return returns the decrypted String as [Result].
+         */
+        fun decryptToByteArray(
+            encryptedText: String,
+            secretKey: SecretKey,
+            ivParameterSpec: IvParameterSpec,
+            isCompressed: Boolean = false,
+        ): Result<ByteArray> = runCatching {
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)
+            val decrypted = cipher.doFinal(encryptedText.fromBase64ToByteArray())
+
+            if (isCompressed) decrypted.decompress()!! else decrypted
+        }
+
+        /**
          * This method should help you to easily encrypt this String with a password.
          *
          * This String will be encrypted with AES and a 256-Bit strong key with AES/CBC/PKCS5Padding.
@@ -258,13 +283,15 @@ object AES {
          * Decrypts the encrypted text within the AESData object using the specified decryption type (e.g., AES/CBC or AES/GCM)
          * and a derived encryption key from the provided password.
          *
+         * Note: This only works for text-based data. Other datas could lose information during decryption.
+         *
          * The decryption process involves deriving a secure AES key from the given password, salt, and iteration count,
          * and using the corresponding AES decryption algorithm with the stored initialization vector (IV) or nonce.
          * If the data was compressed during encryption, decompression will be applied during decryption.
          *
          * @param password The password used to derive the encryption key for decryption.
          */
-        fun decrypt(password: String) = when (type) {
+        fun decryptAsString(password: String) = when (type) {
             AESType.CBC -> CBC.decrypt(
                 encryptedText,
                 Common.generateSecureAesKeyFromPassword(password, salt, iterations),
@@ -273,6 +300,33 @@ object AES {
             )
 
             AESType.GCM -> GCM.decrypt(
+                encryptedText,
+                Common.generateSecureAesKeyFromPassword(password, salt, iterations),
+                ivOrNonce,
+                compressed
+            )
+        }
+
+        /**
+         * Decrypts the encrypted data stored in the AESData object into a byte array using the specified decryption type
+         * (AES/CBC or AES/GCM) and a derived encryption key from the provided password.
+         *
+         * The process involves using the AES decryption algorithm (CBC or GCM), deriving a secure AES key based on the
+         * given password, salt, and iteration count, and applying the relevant initialization vector (IV) or nonce. If
+         * the data was compressed during encryption, decompression is also applied after the decryption step.
+         *
+         * @param password The password used to derive the encryption key for decryption.
+         * @return A Result<ByteArray> containing the decrypted byte array or an error if decryption fails.
+         */
+        fun decryptAsByteArray(password: String) = when (type) {
+            AESType.CBC -> CBC.decryptToByteArray(
+                encryptedText,
+                Common.generateSecureAesKeyFromPassword(password, salt, iterations),
+                IvParameterSpec(ivOrNonce),
+                compressed
+            )
+
+            AESType.GCM -> GCM.decryptToByteArray(
                 encryptedText,
                 Common.generateSecureAesKeyFromPassword(password, salt, iterations),
                 ivOrNonce,
@@ -371,11 +425,30 @@ object AES {
             secretKey: SecretKey,
             nonce: ByteArray = Common.generateNonce(),
             compress: Boolean = false,
+        ): Result<String> = encrypt(text.toByteArray(), secretKey, nonce, compress)
+
+        /**
+         * Encrypt this ByteArray with a given [secretKey] and a given [nonce] with AES/GCM/NoPadding.
+         *
+         * [nonce] is very important to prevent dictionary attacks. Recommended size is 12 bytes.
+         *
+         * @param data to encrypt
+         * @param secretKey Key for encryption
+         * @param nonce nonce for randomness during generation (recommended 12 bytes)
+         * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
+         *
+         * @return returns the encrypted String as base64 as [Result].
+         */
+        fun encrypt(
+            data: ByteArray,
+            secretKey: SecretKey,
+            nonce: ByteArray = Common.generateNonce(),
+            compress: Boolean = false,
         ): Result<String> = runCatching {
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
             val spec = GCMParameterSpec(128, nonce)
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec)
-            cipher.doFinal((if (compress) text.compress() else text)!!.toByteArray()).toBase64()
+            cipher.doFinal((if (compress) data.compress() else data)).toBase64()
         }
 
         /**
@@ -404,6 +477,20 @@ object AES {
             if (isCompressed) decrypted.decompress()!! else decrypted
         }
 
+        fun decryptToByteArray(
+            encryptedText: String,
+            secretKey: SecretKey,
+            nonce: ByteArray,
+            isCompressed: Boolean = false
+        ): Result<ByteArray> = runCatching {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            val spec = GCMParameterSpec(128, nonce)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
+            val decrypted = cipher.doFinal(encryptedText.fromBase64ToByteArray())
+
+            if (isCompressed) decrypted.decompress()!! else decrypted
+        }
+
         /**
          * This method should help you to easily encrypt this String with a password.
          *
@@ -423,11 +510,32 @@ object AES {
             password: String,
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
+        ): AESData = encryptWithPassword(text, password, salt, compress)
+
+        /**
+         * This method should help you to easily encrypt this ByteArray with a password.
+         *
+         * This String will be encrypted with AES and a 256-Bit strong key with AES/GCM/NoPadding.
+         * Most will be randomly generated. Check the result for all used informations used for encryption.
+         *
+         * @param data to encrypt
+         * @param password to encrypt the String with. This has to be kept as a secret!
+         * @param salt to make the encryption more robust. This has not to be a secret and can be stored globally. By default, this is a random 16 Byte array.
+         * You can reuse the salt or generate a new one any time (recommended).
+         * @param compress if set to true, this String will be first compressed and encrypted afterward. Use this for large inputs to reduce size.
+         *
+         * @return [AESData]. Read the doc there for more information.
+         */
+        fun encryptWithPassword(
+            data: ByteArray,
+            password: String,
+            salt: ByteArray = Common.generateSecureRandom(16),
+            compress: Boolean = false
         ): AESData {
             val nonce = Common.generateNonce()
             val iterations = 600_000
             val key = Common.generateSecureAesKeyFromPassword(password, salt, iterations)
-            val encrypted = encrypt(text, key, nonce, compress).getOrThrow()
+            val encrypted = encrypt(data, key, nonce, compress).getOrThrow()
 
             return AESData(encrypted, compress, salt, iterations, nonce, AESType.GCM)
         }
