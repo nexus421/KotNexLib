@@ -78,7 +78,7 @@ repositories {
 }
 
 dependencies {
-    implementation("bayern.kickner:KotNexLib:4.2.0")
+    implementation("bayern.kickner:KotNexLib:4.3.0")
 }
 ```
 
