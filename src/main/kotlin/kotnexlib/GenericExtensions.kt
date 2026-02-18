@@ -1,5 +1,7 @@
 package kotnexlib
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
@@ -21,8 +23,23 @@ inline fun <T> T?.ifNull(isNull: () -> Unit) {
     if (this == null) isNull()
 }
 
-fun <T> T?.isNull() = this == null
-fun <T> T?.isNotNull() = this != null
+@OptIn(ExperimentalContracts::class)
+fun <T> T?.isNull(): Boolean {
+    contract {
+        returns(true) implies (this@isNull != null)
+    }
+
+    return this == null
+}
+
+@OptIn(ExperimentalContracts::class)
+fun <T> T?.notNull(): Boolean {
+    contract {
+        returns(false) implies (this@notNull != null)
+    }
+
+    return this != null
+}
 
 /**
  * Default-Wert angeben. Wenn ein Objekt null sein kann, kann damit ein default-Wert angegeben werden.
