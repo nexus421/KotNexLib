@@ -10,7 +10,7 @@ java {
 }
 
 group = "com.github.nexus421"
-version = "4.2.0"
+version = "4.3.0"
 val globalVersion = version.toString()
 
 repositories {
