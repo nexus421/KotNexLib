@@ -131,6 +131,7 @@ private fun String.normalizeConfiguredPath(): String = if (isBlank() || this == 
  * @param apiKeyParameterName The name of the HTTP request header that is expected to contain the API key.
  * Defaults to "API-KEY".
  */
+@Deprecated("You may use the official API Key authentication. See https://ktor.io/docs/server-api-key-auth.html")
 fun Application.checkApiKey(
     allowedApiKeys: List<Ktor.ApiKey>,
     ignorePaths: List<Ktor.IgnorePath> = listOf(Ktor.IgnorePath("/")),
