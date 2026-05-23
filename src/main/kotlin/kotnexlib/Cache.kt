@@ -1,0 +1,159 @@
+package kotnexlib
+
+import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+
+/**
+ * Generic, thread-safe cache with optional automatic cleanup.
+ *
+ * Entries are stored under a freely chosen key [K] and return values of type [T].
+ * Internally, a timestamp is stored for each entry, which is used for time-based cleanup.
+ *
+ * **Possible extension:** Refresh-on-Access – the timestamp of an entry is reset on every
+ * [get] call, so the TTL counts from the last access rather than from insertion.
+ * Not currently implemented.
+ *
+ * @param K Type of the key (e.g. `String` for a customer ID).
+ * @param T Type of the stored value (e.g. `CustomerData`).
+ * @param maxAge Optional maximum age of an entry. Used as the default value
+ *   for [cleanup] and [startAutoCleanup].
+ * @param checkInterval Optional check interval for automatic cleanup.
+ *   If a value is provided, the automatic cleanup job starts immediately when the
+ *   cache is created. Defaults to [maxAge] if provided.
+ * @param onEvict Optional callback invoked whenever an entry is removed from the
+ *   cache – both by [cleanup] and by [remove] and [clear].
+ *   Useful for releasing resources (e.g. closing connections) or logging evictions.
+ * @param scope [CoroutineScope] in which the automatic cleanup job runs.
+ *   Can be replaced with a custom scope for testing.
+ */
+class Cache<K, T>(
+    val maxAge: Duration? = null,
+    checkInterval: Duration? = maxAge,
+    private val onEvict: ((key: K, value: T) -> Unit)? = null,
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+) {
+    /**
+     * Internal wrapper that stores a cached value together with its
+     * insertion timestamp (Unix milliseconds).
+     */
+    private data class CacheEntry<T>(val value: T, val timestamp: Long = System.currentTimeMillis())
+
+    private val data = ConcurrentHashMap<K, CacheEntry<T>>()
+    private var cleanupJob: Job? = null
+
+    /** Number of entries currently stored in the cache. */
+    val size: Int get() = data.size
+
+    /**
+     * `true` if the cache contains no entries.
+     * */
+    val isEmpty: Boolean get() = data.isEmpty()
+
+    init {
+        if (maxAge != null && checkInterval != null) {
+            startAutoCleanup(maxAge, checkInterval)
+        }
+    }
+
+    /**
+     * Returns the cached value for the given [key],
+     * or `null` if no entry is present.
+     */
+    fun get(key: K): T? = data[key]?.value
+
+    /**
+     * Returns the cached value for [key]. If no entry is present,
+     * [loader] is called, the result is stored and returned.
+     *
+     * Note: Under concurrent access, [loader] may be called more than once in rare cases.
+     * The stored value remains consistent.
+     *
+     * @param key Key of the entry to look up.
+     * @param loader Suspend function that computes or loads the value if
+     *   no cache hit is found.
+     */
+    suspend fun getOrSet(key: K, loader: suspend () -> T): T {
+        data[key]?.let { return it.value }
+        val value = loader()
+        return data.putIfAbsent(key, CacheEntry(value))?.value ?: value
+    }
+
+    /**
+     * Stores [value] under the given [key].
+     * An existing entry will be overwritten.
+     */
+    fun set(key: K, value: T) {
+        data[key] = CacheEntry(value)
+    }
+
+    /**
+     * Removes the entry with the given [key] from the cache,
+     * invokes [onEvict], and returns the associated value,
+     * or `null` if no entry was present.
+     */
+    fun remove(key: K): T? = data.remove(key)?.value?.also { onEvict?.invoke(key, it) }
+
+    /**
+     * Removes all entries from the cache and invokes [onEvict] for each.
+     */
+    fun clear() {
+        if (onEvict != null) {
+            data.forEach { (key, entry) -> onEvict.invoke(key, entry.value) }
+        }
+        data.clear()
+    }
+
+    /**
+     * Removes all entries older than [maxAge] and invokes [onEvict] for each.
+     * If the cache is empty, the iteration is skipped.
+     *
+     * Can be called manually at any time, regardless of whether
+     * automatic cleanup is active or not.
+     *
+     * @param maxAge Maximum age of an entry. Older entries will be deleted.
+     *   Defaults to [Cache.maxAge] if provided at construction.
+     */
+    fun cleanup(maxAge: Duration = this.maxAge ?: error("No maxAge specified.")) {
+        if (isEmpty) return
+        val cutoff = System.currentTimeMillis() - maxAge.inWholeMilliseconds
+        data.entries.removeIf { (key, entry) ->
+            (entry.timestamp < cutoff).also { evicted ->
+                if (evicted) onEvict?.invoke(key, entry.value)
+            }
+        }
+    }
+
+    /**
+     * Starts automatic cleanup.
+     *
+     * The job checks every [checkInterval] whether entries older than [maxAge] are present
+     * and removes them. Any already running cleanup job is stopped and restarted.
+     *
+     * @param maxAge Maximum age of an entry. Older entries will be deleted.
+     *   Defaults to [Cache.maxAge] if provided at construction.
+     * @param checkInterval Time interval between two cleanup runs.
+     *   Defaults to [maxAge].
+     */
+    fun startAutoCleanup(
+        maxAge: Duration = this.maxAge ?: error("No maxAge specified."),
+        checkInterval: Duration = maxAge
+    ) {
+        cleanupJob?.cancel()
+        cleanupJob = scope.launch {
+            while (isActive) {
+                delay(checkInterval)
+                cleanup(maxAge)
+            }
+        }
+    }
+
+    /**
+     * Stops automatic cleanup if it is active.
+     * Already stored entries are not affected.
+     */
+    fun stopAutoCleanup() {
+        cleanupJob?.cancel()
+        cleanupJob = null
+    }
+}

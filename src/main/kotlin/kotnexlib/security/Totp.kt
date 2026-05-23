@@ -1,6 +1,7 @@
 package kotnexlib.security
 
 import java.nio.ByteBuffer
+import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -64,7 +65,7 @@ object TOTP {
         ): Boolean {
             val currentInterval = timeMillis / 30000L
             for (i in -window..window) {
-                if (generateCodeAtInterval(secret, currentInterval + i) == code) return true
+                if (timingSafeEquals(generateCodeAtInterval(secret, currentInterval + i), code)) return true
             }
             return false
         }
@@ -99,6 +100,13 @@ object TOTP {
 
         return "%06d".format(otp)
     }
+
+    /**
+     * Constant-time string comparison to prevent timing attacks.
+     * Both strings are always 6 characters long (TOTP codes), so lengths are equal.
+     */
+    private fun timingSafeEquals(a: String, b: String): Boolean =
+        MessageDigest.isEqual(a.toByteArray(), b.toByteArray())
 
     /**
      * Minimal Base32 encoding (RFC 4648).
