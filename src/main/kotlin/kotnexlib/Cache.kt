@@ -1,8 +1,112 @@
 package kotnexlib
 
 import kotlinx.coroutines.*
+import kotnexlib.LocalCache.cacheKey
+import kotnexlib.LocalCache.getOrSet
+import kotnexlib.LocalCache.initCache
+import kotnexlib.LocalCache.setData
+import kotnexlib.LocalCache.theCache
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
+
+/**
+ * Global, type-based in-memory cache.
+ *
+ * Objects of arbitrary types can be stored here and retrieved at any time,
+ * regardless of which provider or implementation is currently active.
+ * Each type automatically receives its own [Cache] bucket, identified by the
+ * fully qualified class name ([cacheKey]).
+ *
+ * The outer map [theCache] is thread-safe ([ConcurrentHashMap]). The inner
+ * [Cache] instances are as well (see the [Cache] class).
+ *
+ * **Optional pre-configuration:** With [initCache] a bucket can be initialized
+ * before first use with a configured [Cache] instance (e.g. with TTL).
+ * Without [initCache], a `Cache()` with default settings is created automatically
+ * on the first access.
+ */
+object LocalCache {
+
+    /**
+     * Internal map that maps each type to its own [Cache] bucket.
+     * The key is the fully qualified class name (see [cacheKey]).
+     */
+    val theCache = ConcurrentHashMap<String, Cache<String, Any>>()
+
+    /**
+     * Returns the cache key for type [T].
+     *
+     * [KClass.qualifiedName] is used as the key, which uniquely identifies each type.
+     * Local and anonymous classes are not allowed, as they have no stable qualified name.
+     *
+     * @throws IllegalArgumentException if [T] is a local or anonymous class.
+     */
+    inline fun <reified T> cacheKey() =
+        T::class.qualifiedName ?: throw IllegalArgumentException("Local and anonymous classes are not allowed.")
+
+    /**
+     * Initializes the bucket for type [T] with a configured [Cache] instance.
+     *
+     * Intended for application startup to set e.g. TTL or an eviction callback
+     * for a specific type. Calling this is not required — without [initCache],
+     * a `Cache()` with default settings will be used automatically on the first
+     * [setData] or [getOrSet] call.
+     *
+     * @param cache The pre-configured [Cache] instance for type [T].
+     * @throws IllegalStateException if a bucket for [T] already exists.
+     */
+    inline fun <reified T> initCache(cache: Cache<String, Any>) {
+        check(theCache.putIfAbsent(cacheKey<T>(), cache) == null) {
+            "Cache for ${T::class.qualifiedName} has already been initialized."
+        }
+    }
+
+    /**
+     * Returns the cached value for [key] of type [T],
+     * or `null` if no entry is present.
+     *
+     * @param key Key of the entry to look up.
+     */
+    inline fun <reified T> getData(key: String): T? =
+        theCache[cacheKey<T>()]?.get(key)?.safeCast()
+
+    /**
+     * Stores [value] under [key] in the bucket for type [T].
+     *
+     * If no bucket for [T] exists yet, a `Cache()` with default settings is created
+     * automatically. An existing entry for [key] will be overwritten.
+     *
+     * @param key Key under which the value is stored.
+     * @param value The value to store.
+     */
+    inline fun <reified T : Any> setData(key: String, value: T) {
+        theCache.getOrPut(cacheKey<T>()) { Cache() }.set(key, value)
+    }
+
+    /**
+     * Returns the cached value for [key] of type [T]. If no entry is present,
+     * [loader] is called, the result is stored and returned.
+     *
+     * If no bucket for [T] exists yet, a `Cache()` with default settings is created automatically.
+     *
+     * @param key Key of the entry to look up.
+     * @param loader Suspend function that computes or loads the value if no cache hit is found.
+     * @return The cached or freshly loaded value.
+     */
+    suspend inline fun <reified T : Any> getOrSet(
+        key: String,
+        noinline loader: suspend () -> T
+    ): T = theCache.getOrPut(cacheKey<T>()) { Cache() }.getOrSet(key, loader).safeCast()!!
+
+    /**
+     * Returns the entire [Cache] bucket for type [T],
+     * or `null` if no bucket for this type exists yet.
+     */
+    inline fun <reified T> getCacheFor(): Cache<String, Any>? =
+        theCache[cacheKey<T>()]
+
+}
+
 
 /**
  * Generic, thread-safe cache with optional automatic cleanup.

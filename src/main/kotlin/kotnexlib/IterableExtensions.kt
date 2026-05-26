@@ -168,3 +168,11 @@ fun <T> Iterable<T>.isAfter(thisT: T, after: (T) -> Boolean): Boolean {
     return indexOf(thisT) > destination
 }
 
+/**
+ * Adds the specified element to the list if it is not already present.
+ *
+ * @param element The element to be added to the list if it is absent.
+ */
+fun <T> MutableList<T>.addIfAbsent(element: T) {
+    if (contains(element).not()) add(element)
+}
