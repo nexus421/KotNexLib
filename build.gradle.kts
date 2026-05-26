@@ -19,14 +19,14 @@ repositories {
 
 dependencies {
     //https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
 
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation(kotlin("reflect"))
     compileOnly("io.objectbox:objectbox-kotlin:5.4.1")
     compileOnly("io.objectbox:objectbox-java:5.4.1")
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.0")
+    compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.1")
     compileOnly("io.ktor:ktor-server-core:3.4.2")
 
     //Ktor Client
