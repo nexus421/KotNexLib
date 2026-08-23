@@ -13,9 +13,9 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+import kotnexlib.CriticalAPI
 import org.bouncycastle.asn1.DERBitString
 import org.bouncycastle.asn1.pkcs.CertificationRequest
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo
@@ -70,7 +70,7 @@ import javax.net.ssl.X509KeyManager
  * }).start(wait = true)
  * ```
  */
-@OptIn(ExperimentalSerializationApi::class)
+@CriticalAPI("Not checked or validated yet! AI generated. Use at your own risk.")
 private object KtorACME {
 
     private val json = Json {

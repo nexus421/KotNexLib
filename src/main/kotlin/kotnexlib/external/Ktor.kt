@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotnexlib.CriticalAPI
 import kotnexlib.coverString
 import java.io.File
 import java.nio.file.Files
@@ -52,7 +53,7 @@ object Ktor {
             var result = key.hashCode()
             result = 31 * result + name.hashCode()
             result = 31 * result + pathValidationType.hashCode()
-            result = 31 * result + (path?.hashCode() ?: 0)
+            result = 31 * result + path.hashCode()
             return result
         }
 
@@ -236,6 +237,7 @@ fun Application.checkApiKey(
  * @param maxFileSize The maximum allowed size for the uploaded JAR file in bytes. Defaults to 100MB.
  * @param maxFileSizeDeviation The maximum allowed percentage deviation in file size between the current and uploaded JAR files. Defaults to 10%.
  */
+@CriticalAPI("This method is not well tested and uploads a file to your server. Use it with caution.")
 fun Application.serverSelfUpdate(
     password: String,
     serverJarPath: String,
@@ -677,7 +679,7 @@ fun Application.serverSelfUpdate(
                         getErrorHtml("Only one JAR file can be uploaded at a time"),
                         ContentType.Text.Html
                     )
-                    tempFile?.delete()
+                    tempFile.delete()
                     return@post
                 }
 
