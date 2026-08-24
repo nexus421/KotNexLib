@@ -31,3 +31,22 @@ A lightweight logging system.
 - `existsFile()`: Reliable check if a file exists.
 - `writeText()` / `readText()`: Simplified file I/O.
 - Additional utilities for path manipulation and file attributes.
+
+#### FileWatcher
+
+Reactively watches a directory for filesystem changes via Java NIO's `WatchService`, exposed as a
+`kotlinx.coroutines.flow.Flow` — no manual polling required.
+
+> [!NOTE]
+> Requires `kotlinx-coroutines-core` on the consumer's classpath (like the rest of KotNexLib's optional
+> integrations, it is `compileOnly` — only pulled in if you actually call `watchDirectory()`).
+
+```kotlin
+File("/path/to/watch").watchDirectory()
+    .onEach { event -> println("${event.kind}: ${event.file}") }
+    .launchIn(coroutineScope)
+```
+
+Each emitted `FileChangeEvent` carries the affected `file` and a `kind` (`CREATED`, `MODIFIED`, or `DELETED`).
+Cancelling collection (or cancelling the enclosing coroutine scope) cleanly closes the underlying `WatchService`
+and stops the background watcher thread.

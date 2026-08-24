@@ -7,6 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Kotlin-2.3.10-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Version" />
   <img src="https://img.shields.io/badge/JDK-11%2B-orange.svg?style=flat-square&logo=openjdk" alt="JDK Version" />
+  <a href="https://github.com/nexus421/KotNexLib/actions/workflows/ci.yml"><img src="https://github.com/nexus421/KotNexLib/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
 </p>
 
 ## Overview
@@ -42,6 +43,9 @@ Detailed documentation for each module can be found below:
 - [**AES Helper**](docs/crypto/AesEncryptionHelper.md): Secure GCM/CBC encryption, password-based key derivation.
 - [**Argon2**](docs/crypto/Argon2Helper.md): Modern password hashing (Argon2id).
 - [**Blowfish**](docs/crypto/BlowfishEncryptionHelper.md): Legacy support for Blowfish encryption.
+- [**HMAC**](docs/crypto/HMAC.md): Request signing and constant-time signature verification (SHA256/512/1).
+- [**ChaCha20-Poly1305**](docs/crypto/ChaCha20Poly1305.md): Authenticated encryption, a fast alternative to AES-GCM on
+  platforms without AES-NI.
 
 ### [Security](docs/security/TOTP.md)
 
@@ -58,10 +62,15 @@ Detailed documentation for each module can be found below:
 ### [File Management](docs/file/FileManagement.md)
 
 - Structured working directories, JSON configuration management, and automated logging with rotation.
+- [**FileWatcher**](docs/file/FileManagement.md#filewatcher): Reactive directory watching as a Coroutine `Flow`
+  (requires `kotlinx-coroutines-core`).
 
 ### [Terminal Output](docs/terminal/ColoredPrinters.md)
 
 - ANSI colors, styles, progress bars, spinners, and structured tables for professional CLI tools.
+- Respects the [`NO_COLOR`](https://no-color.org) standard.
+- [**Prompts**](docs/terminal/ColoredPrinters.md#interactive-prompts-kotnexlibterminalprompts): Interactive stdin
+  prompts (text input, yes/no confirmation, numbered selection).
 
 ### [Utilities](docs/utils/CommonUtils.md)
 
@@ -71,6 +80,7 @@ Detailed documentation for each module can be found below:
 - [**Common**](docs/utils/CommonUtils.md): `ResultOf` patterns, permutations, and time measurement.
 - [**Cache**](docs/utils/Cache.md): Thread-safe in-memory caching with optional TTL, plus a global type-based
   `LocalCache`.
+- [**Date & Time**](docs/utils/DateTime.md): Idiomatic `java.time` extensions (`LocalDate`, `Instant`).
 
 ### [Remote Storage](docs/storage/SshStorage.md)
 

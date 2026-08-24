@@ -148,10 +148,13 @@ object Terminal {
     fun isWindows(): Boolean = SystemProperties.osName().lowercase().contains("windows")
 
     /**
-     * Checks if ANSI color codes are supported on the current platform.
-     * @return true if ANSI color codes are supported, false otherwise.
+     * Checks if ANSI color codes should be used on the current platform. Respects the
+     * [NO_COLOR standard](https://no-color.org): if the `NO_COLOR` environment variable is set
+     * (regardless of its value), colors are never emitted.
+     * @return true if ANSI color codes are supported and not disabled via `NO_COLOR`, false otherwise.
      */
-    fun supportsAnsiColors(): Boolean = isLinux() || isMacOS() || (isWindows() && System.getenv("TERM") != null)
+    fun supportsAnsiColors(): Boolean =
+        System.getenv("NO_COLOR") == null && (isLinux() || isMacOS() || (isWindows() && System.getenv("TERM") != null))
 
     /**
      * The escape character used for ANSI escape sequences.

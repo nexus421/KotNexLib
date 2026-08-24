@@ -2,10 +2,9 @@ package kotnexlib
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.*
 import java.util.*
+import kotlin.time.Duration.Companion.minutes
 
 class CalendarFunctionsTest {
 
@@ -110,5 +109,48 @@ class CalendarFunctionsTest {
         date.addDays(-10)
         val updatedCal2 = date.toCalendar()
         assertEquals(5, updatedCal2.dayOfMonth())
+    }
+
+    @Test
+    fun testIsWeekendAndIsWorkday() {
+        val saturday = LocalDate.of(2026, 8, 22)
+        val sunday = LocalDate.of(2026, 8, 23)
+        val monday = LocalDate.of(2026, 8, 24)
+
+        assertTrue(saturday.isWeekend())
+        assertTrue(sunday.isWeekend())
+        assertFalse(monday.isWeekend())
+
+        assertFalse(saturday.isWorkday())
+        assertTrue(monday.isWorkday())
+    }
+
+    @Test
+    fun testIsSameDayAs() {
+        val date = LocalDate.of(2026, 8, 24)
+        assertTrue(date.isSameDayAs(LocalDate.of(2026, 8, 24)))
+        assertFalse(date.isSameDayAs(LocalDate.of(2026, 8, 25)))
+    }
+
+    @Test
+    fun testDaysLaterAndDaysAgo() {
+        val today = LocalDate.now()
+        assertEquals(today.plusDays(5), 5.daysLater)
+        assertEquals(today.minusDays(5), 5.daysAgo)
+        assertEquals(today, 0.daysLater)
+    }
+
+    @Test
+    fun testInstantPlusDuration() {
+        val start = Instant.parse("2026-01-01T00:00:00Z")
+        val result = start.plusDuration(90.minutes)
+        assertEquals(Instant.parse("2026-01-01T01:30:00Z"), result)
+    }
+
+    @Test
+    fun testLocalDateTimeToEpochMillis() {
+        val ldt = LocalDateTime.of(2026, 1, 1, 0, 0, 0)
+        val millis = ldt.toEpochMillis(ZoneOffset.UTC)
+        assertEquals(Instant.parse("2026-01-01T00:00:00Z").toEpochMilli(), millis)
     }
 }

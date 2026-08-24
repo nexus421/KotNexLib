@@ -1,14 +1,12 @@
 package kotnexlib
 
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.absoluteValue
+import kotlin.time.Duration
 
 
 fun Calendar.setTimeMillis(time: Long): Calendar {
@@ -120,3 +118,42 @@ fun Date.addDays(amount: Int): Date {
     if (amount < 0) time -= milliseconds else time += milliseconds
     return this
 }
+
+/**
+ * @return `true` if this date falls on a Saturday or Sunday.
+ */
+fun LocalDate.isWeekend(): Boolean = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY
+
+/**
+ * @return `true` if this date falls on a workday (Monday-Friday).
+ */
+fun LocalDate.isWorkday(): Boolean = !isWeekend()
+
+/**
+ * @param other the date to compare with.
+ * @return `true` if [other] is the same day.
+ */
+fun LocalDate.isSameDayAs(other: LocalDate): Boolean = this == other
+
+/**
+ * @return today's date plus this many days.
+ */
+val Int.daysLater: LocalDate get() = LocalDate.now().plusDays(this.toLong())
+
+/**
+ * @return today's date minus this many days.
+ */
+val Int.daysAgo: LocalDate get() = LocalDate.now().minusDays(this.toLong())
+
+/**
+ * @param duration the duration to add.
+ * @return this instant plus [duration].
+ */
+fun Instant.plusDuration(duration: Duration): Instant = this.plusMillis(duration.inWholeMilliseconds)
+
+/**
+ * @param zoneId the time zone to use. Default: system time zone.
+ * @return the number of milliseconds since the Unix epoch.
+ */
+fun LocalDateTime.toEpochMillis(zoneId: ZoneId = ZoneId.systemDefault()): Long =
+    atZone(zoneId).toInstant().toEpochMilli()
