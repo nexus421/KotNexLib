@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.3.10"
+    kotlin("jvm") version "2.4.10"
     id("org.jetbrains.dokka-javadoc") version "2.1.0"
     `maven-publish`
 }
@@ -10,7 +10,7 @@ java {
 }
 
 group = "com.github.nexus421"
-version = "4.3.0"
+version = "4.4.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -19,12 +19,11 @@ repositories {
 
 dependencies {
     //https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
 
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation(kotlin("reflect"))
     compileOnly("io.objectbox:objectbox-kotlin:5.4.1")
-    compileOnly("io.objectbox:objectbox-java:5.4.1")
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.1")
     compileOnly("io.ktor:ktor-server-core:3.4.2")

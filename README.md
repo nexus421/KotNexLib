@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Kotlin-2.3.10-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Version" />
+  <img src="https://img.shields.io/badge/Kotlin-2.4.10-blue.svg?style=flat-square&logo=kotlin" alt="Kotlin Version" />
   <img src="https://img.shields.io/badge/JDK-11%2B-orange.svg?style=flat-square&logo=openjdk" alt="JDK Version" />
   <a href="https://github.com/nexus421/KotNexLib/actions/workflows/ci.yml"><img src="https://github.com/nexus421/KotNexLib/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
 </p>
@@ -94,7 +94,9 @@ Detailed documentation for each module can be found below:
 
 ### [Modernization & Proposals](docs/ModernizationProposals.md)
 
-- Architectural improvements, Value Classes, Performance Caching, and Future Roadmap.
+- Design rationale behind the `java.time` extensions, the ObjectBox key-derivation cache, HMAC/ChaCha20-Poly1305,
+  `NO_COLOR`/`Prompts`, and `FileWatcher` features above (all implemented) — plus a discussion-stage roadmap for a
+  future multi-module (Kotlin Multiplatform) architecture.
 
 ---
 
@@ -111,7 +113,7 @@ repositories {
 }
 
 dependencies {
-    implementation("bayern.kickner:KotNexLib:4.3.0")
+  implementation("bayern.kickner:KotNexLib:4.4.0")
 }
 ```
 
