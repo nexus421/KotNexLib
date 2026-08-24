@@ -17,9 +17,8 @@ import kotlin.contracts.contract
  * @return (partly) covered string. If the given index is to high/low, the original string will be returned.
  */
 fun String.coverString(start: Int = 1, end: Int = length - 2, coverChar: Char = '*'): String {
-    require(start < end) { "Start has to be lower than end!" }
     if (isEmpty()) return this
-    if ((end >= length || start < 0)) return this
+    if (start < 0 || end >= length || start >= end) return this
 
     val result = toCharArray()
     for (i in indices) {
@@ -41,7 +40,7 @@ fun String?.isNotNullOrBlank(): Boolean {
     contract {
         returns(true) implies (this@isNotNullOrBlank != null)
     }
-    return !this.isNullOrBlank()
+    return this.isNullOrBlank().not()
 }
 
 /**
@@ -99,14 +98,18 @@ fun String?.decompress(): String? = this?.toByteArray()?.decompress()?.let { Str
  */
 fun String.crossContains(that: String, ignoreCase: Boolean = false) = this.contains(that, ignoreCase) || that.contains(this, ignoreCase)
 
+private val digitOnlyRegex = Regex("^\\d*\$")
+private val alphabeticOnlyRegex = Regex("^[a-zA-Z]*\$")
+private val alphanumericOnlyRegex = Regex("^[a-zA-Z\\d]*\$")
+
 val String.isDigitOnly: Boolean
-    get() = matches(Regex("^\\d*\$"))
+    get() = matches(digitOnlyRegex)
 
 val String.isAlphabeticOnly: Boolean
-    get() = matches(Regex("^[a-zA-Z]*\$"))
+    get() = matches(alphabeticOnlyRegex)
 
 val String.isAlphanumericOnly: Boolean
-    get() = matches(Regex("^[a-zA-Z\\d]*\$"))
+    get() = matches(alphanumericOnlyRegex)
 
 
 /**

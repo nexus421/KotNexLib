@@ -8,6 +8,10 @@ KotNexLib is a single-module Kotlin/JVM utility library (extensions, crypto, ter
 
 Kotlin 2.3.10, `jvmToolchain(11)`, JUnit 5, Gradle 8.10 wrapper. Gradle needs a JDK on `PATH`/`JAVA_HOME`.
 
+**JDK 21 is the known-good JDK for building.** Gradle 8.10 can crash its daemon on newer JDKs (e.g. JDK 25) that happen
+to be the system default — if `./gradlew build`/`test` fails inexplicably, retry with
+`JAVA_HOME=/path/to/jdk-21 ./gradlew ...`. This is separate from the library's own `jvmToolchain(11)` target.
+
 ## Commands
 
 ```bash

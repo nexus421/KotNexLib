@@ -1,6 +1,5 @@
 package kotnexlib
 
-import io.ktor.util.*
 import java.nio.CharBuffer
 
 /**
@@ -12,9 +11,13 @@ import java.nio.CharBuffer
  */
 fun CharArray.useAndWipe(byteArray: (ByteArray) -> Unit): Result<Unit> {
     val convertedByteBuffer = Charsets.UTF_8.encode(CharBuffer.wrap(this))
-    val convertedByteArray = convertedByteBuffer.moveToByteArray()
+    val convertedByteArray = ByteArray(convertedByteBuffer.remaining()).apply {
+        convertedByteBuffer.get(this)
+    }
     fill('\u0000')
-    convertedByteBuffer.array().fill(0)
+    if (convertedByteBuffer.hasArray()) {
+        convertedByteBuffer.array().fill(0)
+    }
     return runCatching { byteArray(convertedByteArray) }.also {
         convertedByteArray.fill(0)
     }

@@ -32,9 +32,13 @@ fun getRandomString(length: Int, allowedChars: List<Char> = ('A'..'Z') + ('a'..'
  * Calculates the block check character (BCC) for error detection.
  * This BCC is calculated by XOR-ing each byte with the result of the previous XOR.
  *
+ * @throws IllegalArgumentException if this String is too short to calculate a BCC (fewer than 2 characters,
+ * or fewer than 1 if [ignoreFirstCharacter] is false).
  * @return BCC result as String
  */
 fun String.calcBcc(ignoreFirstCharacter: Boolean = true): String {
+    val minLength = if (ignoreFirstCharacter) 2 else 1
+    require(length >= minLength) { "String must have at least $minLength character(s) to calculate a BCC (ignoreFirstCharacter=$ignoreFirstCharacter)." }
 
     //Der erste character muss ignoriert werden.
     //Eigentlich nur das erste STX oder SOH
@@ -61,6 +65,9 @@ suspend fun <T> retryOnError(
     doThis: suspend () -> T
 ): T? = try {
     doThis()
+} catch (ce: kotlin.coroutines.cancellation.CancellationException) {
+    onError?.let { it(ce) }
+    throw ce
 } catch (t: Throwable) {
     onError?.let { it(t) }
     if (attempts > 0) {
@@ -93,6 +100,9 @@ suspend fun <T> retryOnErrorOrThrow(
     doThis: suspend () -> T
 ): T = try {
     doThis()
+} catch (ce: kotlin.coroutines.cancellation.CancellationException) {
+    onError?.let { it(ce) }
+    throw ce
 } catch (t: Throwable) {
     onError?.let { it(t) }
     if (attempts > 0) {

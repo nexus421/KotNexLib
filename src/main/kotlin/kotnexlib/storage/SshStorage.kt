@@ -4,7 +4,6 @@ import kotnexlib.ExperimentalKotNexLibAPI
 import kotnexlib.ResultOf
 import kotnexlib.ResultOfEmpty
 import kotnexlib.crypto.AES
-import kotnexlib.storage.SshStorage.upload
 import kotnexlib.tryOrNull
 import java.io.File
 import java.text.SimpleDateFormat
@@ -92,8 +91,15 @@ object SshStorage {
         ): ResultOfEmpty<String> {
             val encrypted = AES.GCM.encryptWithPassword(data, password)
             val tmpFile = File.createTempFile("kotnexlib_encrypted_temp", ".tmp")
-            tmpFile.writeText(encrypted.toString())
-            return SshStorage.upload(tmpFile, destinationPath + File.separator + filename)
+            return try {
+                tmpFile.writeText(encrypted.toString())
+                val remoteTarget = if (destinationPath.isNotEmpty()) {
+                    destinationPath.removeTrailingSlash() + "/" + filename
+                } else filename
+                SshStorage.upload(tmpFile, remoteTarget)
+            } finally {
+                tmpFile.delete()
+            }
         }
 
         /**
@@ -281,13 +287,14 @@ object SshStorage {
         checkInit()
 
         val rmCommand = if (isFolder) "rm -rf" else "rm"
+        val cleanPath = remotePath.removeStartingSlash().replace("//", "/")
         val command = listOf(
             "ssh",
             "-p", port.toString(),
             "-i", sshKey.absolutePath,
             "-o", "StrictHostKeyChecking=accept-new",
             "$user@$host",
-            "$rmCommand ${remotePath.removeStartingSlash().replace("//", "/")}"
+            "$rmCommand ${cleanPath.shellQuoted()}"
         )
 
         return executeCommand(command)
@@ -338,13 +345,14 @@ object SshStorage {
     fun listFiles(directoryPath: String): ResultOf<List<RemoteFile>> {
         checkInit()
 
+        val cleanPath = directoryPath.removeStartingSlash().replace("//", "/")
         val command = listOf(
             "ssh",
             "-p", port.toString(),
             "-i", sshKey.absolutePath,
             "-o", "StrictHostKeyChecking=accept-new",
             "$user@$host",
-            "ls -la --time-style=long-iso ${directoryPath.removeStartingSlash().replace("//", "/")}"
+            "ls -la --time-style=long-iso ${cleanPath.shellQuoted()}"
         )
 
         return try {
@@ -428,3 +436,10 @@ object SshStorage {
     private fun String.removeStartingSlash() = if (startsWith("/")) drop(1) else this
     private fun String.removeTrailingSlash() = if (endsWith("/")) dropLast(1) else this
 }
+
+/**
+ * Wraps this String in single quotes so it is passed to the remote shell as a single, literal
+ * argument, escaping any single quotes it already contains. Prevents remote command injection
+ * when this value is interpolated into a command string executed via `ssh`.
+ */
+internal fun String.shellQuoted() = "'" + replace("'", "'\\''") + "'"

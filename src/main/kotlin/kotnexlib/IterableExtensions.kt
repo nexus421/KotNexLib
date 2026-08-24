@@ -14,6 +14,10 @@ inline fun <T> Iterable<T>.forEachDoLast(action: (T, LastElement) -> Unit) {
     }
 }
 
+@Deprecated(
+    message = "Use Kotlin standard library any() instead",
+    replaceWith = ReplaceWith("this.any(predicate)")
+)
 inline fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
     for (element in this) if (predicate(element)) return true
     return false
@@ -26,6 +30,10 @@ inline fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
  *
  * @return SplitList containing splitted list
  */
+@Deprecated(
+    message = "Use Kotlin standard library partition() instead",
+    replaceWith = ReplaceWith("this.partition(predicate)")
+)
 inline fun <T> Iterable<T>.splitFilter(predicate: (T) -> Boolean): SplitList<T> {
     val trueList = mutableListOf<T>()
     val falseList = mutableListOf<T>()
@@ -151,8 +159,10 @@ fun <T> MutableList<T>.moveOrAdd(thisEntry: T, toIndex: Int) {
  * @return `true` if the element `thisT` comes before the element determined by the `before` function, otherwise `false`.
  */
 fun <T> Iterable<T>.isBefore(thisT: T, before: (T) -> Boolean): Boolean {
+    val thisIndex = indexOf(thisT)
+    if (thisIndex == -1) return false
     val destination = indexOfFirst(before)
-    return indexOf(thisT) < destination
+    return destination != -1 && thisIndex < destination
 }
 
 
@@ -164,8 +174,10 @@ fun <T> Iterable<T>.isBefore(thisT: T, before: (T) -> Boolean): Boolean {
  * @return `true` if the element `thisT` comes after the element determined by the `after` function, otherwise `false`.
  */
 fun <T> Iterable<T>.isAfter(thisT: T, after: (T) -> Boolean): Boolean {
+    val thisIndex = indexOf(thisT)
+    if (thisIndex == -1) return false
     val destination = indexOfFirst(after)
-    return indexOf(thisT) > destination
+    return destination != -1 && thisIndex > destination
 }
 
 /**

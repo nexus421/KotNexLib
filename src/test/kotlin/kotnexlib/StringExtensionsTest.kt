@@ -14,7 +14,20 @@ class StringExtensionsTest {
         // Default: start=1, end=length-2 (6), char='*'
         assertEquals("1******8", original.coverString())
         assertEquals("123**678", original.coverString(3, 4))
-        assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) { original.coverString(0, 0) }
+        // start == end is out of range (not "start < end"), so the original string is returned unchanged.
+        assertEquals(original, original.coverString(0, 0))
+    }
+
+    @Test
+    fun testCoverStringOutOfRangeReturnsOriginal() {
+        // Regression test: coverString must never throw for out-of-range indices, per its documented contract.
+        assertEquals("", "".coverString())
+        assertEquals("a", "a".coverString())
+        assertEquals("ab", "ab".coverString())
+        assertEquals("abc", "abc".coverString())
+        assertEquals("abcd", "abcd".coverString(start = -1))
+        assertEquals("abcd", "abcd".coverString(end = 10))
+        assertEquals("abcd", "abcd".coverString(start = 3, end = 1))
     }
 
     @Test

@@ -26,7 +26,7 @@ inline fun <T> T?.ifNull(isNull: () -> Unit) {
 @OptIn(ExperimentalContracts::class)
 fun <T> T?.isNull(): Boolean {
     contract {
-        returns(true) implies (this@isNull != null)
+        returns(false) implies (this@isNull != null)
     }
 
     return this == null
@@ -35,7 +35,7 @@ fun <T> T?.isNull(): Boolean {
 @OptIn(ExperimentalContracts::class)
 fun <T> T?.notNull(): Boolean {
     contract {
-        returns(false) implies (this@notNull != null)
+        returns(true) implies (this@notNull != null)
     }
 
     return this != null

@@ -12,7 +12,7 @@ import java.security.MessageDigest
  */
 fun String.hash(hashAlgorithm: HashAlgorithm = HashAlgorithm.SHA_256) = MessageDigest
     .getInstance(hashAlgorithm.algorithm)
-    .digest(toByteArray())
+    .digest(toByteArray(Charsets.UTF_8))
     .fold("") { str, it -> str + "%02x".format(it) }
 
 /**

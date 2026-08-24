@@ -8,5 +8,8 @@ package kotnexlib
  *
  * @param any has to be a custom object from your project. DO NOT USE an empty string or other bundled classes, otherwise the result will always be false.
  */
+@Deprecated("Use isJar instead", ReplaceWith("isJar"))
 fun runsAsJar(any: Any) =
     (any::class.java.getResource(any.javaClass.simpleName + ".class")?.toString()?.startsWith("file"))?.not() ?: false
+
+val isJar: Boolean = System.getProperty("sun.java.command")?.contains(".jar") == true

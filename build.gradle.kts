@@ -36,6 +36,7 @@ dependencies {
     compileOnly("io.ktor:ktor-serialization-kotlinx-json:3.4.2")
     compileOnly("io.ktor:ktor-client-auth:3.4.2")
 
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

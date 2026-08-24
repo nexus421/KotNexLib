@@ -13,13 +13,19 @@ object IBAN {
      * @return `true` if the IBAN is valid, `false` otherwise.
      */
     fun isValidIban(iban: String): Boolean {
-        val clearedIban = iban.replace(" ", "")
+        val clearedIban = iban.replace(" ", "").uppercase()
         if (clearedIban.length < 15 || clearedIban.length > 34) return false
+        if (!clearedIban.all { it in 'A'..'Z' || it in '0'..'9' }) return false
 
         val rearranged = clearedIban.substring(4) + clearedIban.substring(0, 4)
-        val digits = rearranged.map { if (it.isDigit()) it.toString() else (it.code - 55).toString() }.joinToString("")
+        val digits = buildString {
+            rearranged.forEach { c ->
+                if (c in '0'..'9') append(c)
+                else append(c.code - 55)
+            }
+        }
 
-        return BigInteger(digits).mod(mod97).toInt() == 1
+        return tryOrNull { BigInteger(digits).mod(mod97).toInt() == 1 } ?: false
     }
 
     /**

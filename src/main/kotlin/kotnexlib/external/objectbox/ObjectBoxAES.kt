@@ -37,6 +37,13 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
      * The password used for encryption and decryption. Must be set before performing encryption or decryption.
      * Larger is better.
      * Should load password from external source like keystore
+     *
+     * Warning: This is a single, mutable, object-level (effectively global) value, not thread-safe or
+     * scoped per entity/field. ObjectBox converters can be invoked concurrently from multiple threads, so
+     * if you need different passwords for different entities/fields at the same time, or use this converter
+     * concurrently with different passwords, one caller's password can overwrite another's mid-operation.
+     * Only safe when exactly one password is in use for the lifetime of the process, or when all access to
+     * this converter (including setting [password]) is externally synchronized.
      */
     var password: String = ""
 

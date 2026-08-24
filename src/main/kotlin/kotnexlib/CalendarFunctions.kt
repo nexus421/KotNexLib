@@ -31,7 +31,7 @@ fun Calendar.isToday(locale: Locale = Locale.getDefault()): Boolean {
  *
  * @return true if this Calendar and [calendar] are from the same year and same day of year
  */
-fun Calendar.isSameDay(calendar: Calendar) = dayOfYear() == calendar.dayOfYear() && year() == calendar.dayOfYear()
+fun Calendar.isSameDay(calendar: Calendar) = dayOfYear() == calendar.dayOfYear() && year() == calendar.year()
 
 fun Calendar.year() = get(Calendar.YEAR)
 

@@ -28,18 +28,18 @@ fun <T> Query<T>.doForEachPages(
     closeAtTheEnd: Boolean = false
 ) {
     var offset = 0L
-    var currentLimit = pageSize
-    while (true) {
-        println("Check logs from $offset to $currentLimit")
-        val logs = find(offset, currentLimit)
-        onEachPage(logs)
-
-        offset = currentLimit
-        currentLimit += pageSize
-        if (offset >= maxLimit) break
+    try {
+        while (offset < maxLimit) {
+            val limit = minOf(pageSize, maxLimit - offset)
+            val logs = find(offset, limit)
+            if (logs.isEmpty()) break
+            onEachPage(logs)
+            offset += logs.size
+            if (logs.size < limit) break
+        }
+    } finally {
+        if (closeAtTheEnd) close()
     }
-
-    if (closeAtTheEnd) close()
 }
 
 /**

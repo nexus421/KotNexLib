@@ -994,13 +994,13 @@ fun createTextBox(
 
     // Top border with optional title
     if (title != null && title.isNotEmpty()) {
-        val titlePadding = (actualWidth - title.length - 2) / 2
-        val leftPadding = titlePadding
-        val rightPadding = actualWidth - title.length - 2 - leftPadding
+        val totalBorder = actualWidth - title.length
+        val leftPaddingCount = totalBorder / 2
+        val rightPaddingCount = totalBorder - leftPaddingCount
 
         result.append(
-            "${color.colorCode}${style.styleCode}┌─${title}${
-                "─".repeat(rightPadding)
+            "${color.colorCode}${style.styleCode}┌${"─".repeat(leftPaddingCount)}${title}${
+                "─".repeat(rightPaddingCount)
             }┐${CommandLineStyles.RESET_ALL.styleCode}\n"
         )
     } else {

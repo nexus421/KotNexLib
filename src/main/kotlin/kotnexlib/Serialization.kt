@@ -26,19 +26,37 @@ fun <T : Serializable> T.serializeToByteArray(): ByteArray {
 }
 
 /**
- * Converts any Base64-String representation back to the original [Serializable]-object. You may created the String with [serializeToString].
+ * Converts any Base64-String representation back to the original [Serializable]-object. You may create the String with [serializeToString].
  *
- * @return the deserialized object or an error.
+ * @param onError Optional callback invoked when deserialization fails.
+ * @return the deserialized object or null if deserialization fails.
  */
-inline fun <reified T : Serializable> String.deserializeFromStringOrNull(noinline onError: ((Throwable) -> Unit)? = null) =
-    runCatching { fromBase64ToByteArray().deserializeFromByteArrayOrNull<T>() }
+inline fun <reified T : Serializable> String.deserializeFromStringOrNull(noinline onError: ((Throwable) -> Unit)? = null): T? =
+    tryOrNull(onError) { fromBase64ToByteArray().deserializeFromByteArrayOrNull<T>(onError) }
 
 /**
- * Converts any serialized ByteArray representation back to the original [Serializable]-object. You may created the String with [serializeToByteArray].
+ * Converts any serialized ByteArray representation back to the original [Serializable]-object. You may create the ByteArray with [serializeToByteArray].
  *
- * @return the deserialized object or an error.
+ * @param onError Optional callback invoked when deserialization fails.
+ * @return the deserialized object or null if deserialization fails.
  */
-inline fun <reified T : Serializable> ByteArray.deserializeFromByteArrayOrNull(noinline onError: ((Throwable) -> Unit)? = null) =
+inline fun <reified T : Serializable> ByteArray.deserializeFromByteArrayOrNull(noinline onError: ((Throwable) -> Unit)? = null): T? =
+    tryOrNull(onError) {
+        ObjectInputStream(inputStream()).use {
+            it.readObject().cast<T>()
+        }
+    }
+
+/**
+ * Converts any Base64-String representation back to the original [Serializable]-object as a [Result].
+ */
+inline fun <reified T : Serializable> String.deserializeFromString(): Result<T> =
+    runCatching { fromBase64ToByteArray().deserializeFromByteArray<T>().getOrThrow() }
+
+/**
+ * Converts any serialized ByteArray representation back to the original [Serializable]-object as a [Result].
+ */
+inline fun <reified T : Serializable> ByteArray.deserializeFromByteArray(): Result<T> =
     runCatching {
         ObjectInputStream(inputStream()).use {
             it.readObject().cast<T>()
