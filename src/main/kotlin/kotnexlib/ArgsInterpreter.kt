@@ -25,8 +25,11 @@ class ArgsInterpreter(private val args: Array<String>, private val splittingChar
      *
      * @return null if the key was not found or the found string value
      */
-    fun getValue(key: String) =
-        args.find { it.split(splittingChar).firstOrNull() == key }?.split(splittingChar)?.getOrNull(1)
+    fun getValue(key: String): String? =
+        args.firstNotNullOfOrNull { arg ->
+            val parts = arg.split(splittingChar, limit = 2)
+            if (parts.firstOrNull() == key) parts.getOrNull(1) else null
+        }
 
     /**
      * Gets any value, found by this [key] and try to cast it to Int.

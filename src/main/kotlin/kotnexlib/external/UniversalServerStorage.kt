@@ -14,14 +14,17 @@ import kotlinx.coroutines.yield
 import kotlinx.serialization.Serializable
 import kotnexlib.ResultOf2
 import kotnexlib.ResultOfEmpty
-import kotnexlib.external.UniversalServerStorage.getWithIndexFilter
+import kotnexlib.external.UniversalServerStorage.basicPassword
+import kotnexlib.external.UniversalServerStorage.basicUsername
 import kotnexlib.toBase64
 
 /**
  * This class is a simple implementation of the API for the UniversalServerStorage.
  * The project is currently still under development and is not (yet) publicly available.
  *
- * This default implementation supports a single API-Key and requires basic-auth!
+ * This default implementation supports a single API-Key sent via the `API-KEY` header.
+ * Basic-auth is optional and only sent if [basicUsername]/[basicPassword] are provided via [init]
+ * (e.g. for a reverse proxy in front of the server that enforces its own HTTP basic-auth).
  */
 object UniversalServerStorage {
 
@@ -31,12 +34,16 @@ object UniversalServerStorage {
                 json()
             }
 
-            install(Auth) {
-                basic {
-                    credentials {
-                        BasicAuthCredentials(username = basicUsername, password = basicPassword)
+            val user = basicUsername
+            val pass = basicPassword
+            if (user != null && pass != null) {
+                install(Auth) {
+                    basic {
+                        credentials {
+                            BasicAuthCredentials(username = user, password = pass)
+                        }
+                        sendWithoutRequest { true }
                     }
-                    sendWithoutRequest { true }
                 }
             }
         }
@@ -48,14 +55,22 @@ object UniversalServerStorage {
     private lateinit var uniqueId: String
     private lateinit var baseUrl: String
     private lateinit var apiKey: String
-    private lateinit var basicUsername: String
-    private lateinit var basicPassword: String
+    private var basicUsername: String? = null
+    private var basicPassword: String? = null
 
     /**
      * Init with this before doing the first request! Otherwise the Request will crash.
-     * Calling the init multiple times won't work for all variables, like [UniversalServerStorage.basicUsername] and [UniversalServerStorage.basicPassword]
+     *
+     * @param basicUsername Optional. Only needed if the server (or a proxy in front of it) also requires HTTP basic-auth.
+     * @param basicPassword Optional. Only needed if the server (or a proxy in front of it) also requires HTTP basic-auth.
      */
-    fun init(uniqueId: String, baseUrl: String, apiKey: String, basicUsername: String, basicPassword: String) {
+    fun init(
+        uniqueId: String,
+        baseUrl: String,
+        apiKey: String,
+        basicUsername: String? = null,
+        basicPassword: String? = null
+    ) {
         this.baseUrl = baseUrl
         this.apiKey = apiKey
         this.uniqueId = uniqueId.toBase64()
@@ -94,7 +109,7 @@ object UniversalServerStorage {
      * It returns a `ResultOf2` object that wraps either the successfully fetched data as a list or an error describing the failure.
      *
      * HTTP Method: GET
-     * Endpoint: /service?name={uniqueId}&id={comma-separated-ids}
+     * Endpoint: /service?name={uniqueId}&ids={comma-separated-ids}
      *
      * @param ids A list of unique IDs representing the data to fetch.
      * @return A `ResultOf2` object which will be one of the following:
@@ -102,7 +117,7 @@ object UniversalServerStorage {
      * - `ResultOf2.Failure`: Contains an `Error` object detailing why the fetch operation failed.
      */
     suspend fun getMulti(ids: List<Long>): ResultOf2<List<Data>, Error> = try {
-        val result = client.get("$baseUrl/service?name=$uniqueId&id=${ids.joinToString(",")}") {
+        val result = client.get("$baseUrl/service?name=$uniqueId&ids=${ids.joinToString(",")}") {
             header("API-KEY", apiKey)
         }
 
@@ -229,11 +244,10 @@ object UniversalServerStorage {
      * id != 0 --> Update existing entry or error, if entry does not exist!
      *
      * @param data The data to be serialized and sent as the request body.
-     * @return A [kotnexlib.ResultOfEmpty] object that represents either the success or the failure of the operation.
-     *         On success, the result will be [kotnexlib.ResultOfEmpty.Success]. On failure, the result will be
-     *         [kotnexlib.ResultOfEmpty.Failure] containing an appropriate [Error] instance.
+     * @return A [kotnexlib.ResultOf2] object containing either a [ResultOf2.Success] with the assigned/updated
+     *         id of the entry, or a [ResultOf2.Failure] with an appropriate [Error] instance.
      */
-    suspend fun post(data: Data): ResultOfEmpty<Error> = try {
+    suspend fun post(data: Data): ResultOf2<Long, Error> = try {
         val result = client.post("$baseUrl/service") {
             header("API-KEY", apiKey)
             setBody(data)
@@ -241,13 +255,13 @@ object UniversalServerStorage {
         }
 
         if (result.status.isSuccess()) {
-            ResultOfEmpty.Success
+            ResultOf2.Success(result.body<Long>())
         } else {
-            result.defaultErrorHandling()
+            result.defaultErrorHandling2()
         }
     } catch (e: Exception) {
         yield()
-        ResultOfEmpty.Failure(Error.UnknownError(e))
+        ResultOf2.Failure(Error.UnknownError(e))
     }
 
     /**
@@ -278,13 +292,13 @@ object UniversalServerStorage {
      * Deletes multiple data items by their IDs.
      *
      * HTTP Method: DELETE
-     * Endpoint: /service?name={uniqueId}&id={comma-separated-ids}
+     * Endpoint: /service?name={uniqueId}&ids={comma-separated-ids}
      *
      * @param ids The list of unique identifiers of the data items to delete
      * @return A [ResultOfEmpty] object indicating success or containing an [Error] on failure
      */
     suspend fun delete(ids: List<Long>): ResultOfEmpty<Error> = try {
-        val result = client.delete("$baseUrl/service?name=$uniqueId&id=${ids.joinToString(",")}") {
+        val result = client.delete("$baseUrl/service?name=$uniqueId&ids=${ids.joinToString(",")}") {
             header("API-KEY", apiKey)
         }
 
@@ -302,6 +316,7 @@ object UniversalServerStorage {
         404 -> ResultOfEmpty.Failure(Error.NotFound)
         401 -> ResultOfEmpty.Failure(Error.Unauthorized(bodyAsText()))
         400 -> ResultOfEmpty.Failure(Error.BadRequest(bodyAsText()))
+        500 -> ResultOfEmpty.Failure(Error.InternalServerError(bodyAsText()))
         else -> ResultOfEmpty.Failure(Error.UnknownError(null))
     }
 
@@ -309,6 +324,7 @@ object UniversalServerStorage {
         404 -> ResultOf2.Failure(Error.NotFound)
         401 -> ResultOf2.Failure(Error.Unauthorized(bodyAsText()))
         400 -> ResultOf2.Failure(Error.BadRequest(bodyAsText()))
+        500 -> ResultOf2.Failure(Error.InternalServerError(bodyAsText()))
         else -> ResultOf2.Failure(Error.UnknownError(null))
     }
 
@@ -316,10 +332,10 @@ object UniversalServerStorage {
     /**
      * Data model class representing a stored item in the database.
      *
-     * This class is used for both database persistence (via ObjectBox @Entity)
-     * and API serialization (via kotlinx.serialization @Serializable).
+     * This mirrors the server's `Data` model and is used for API serialization
+     * (via kotlinx.serialization @Serializable).
      *
-     * @property id The database primary key, automatically assigned by ObjectBox if not provided. Use an existing one to update an existing item.
+     * @property id The database primary key, automatically assigned by the server if 0. Use an existing one to update an existing item.
      * @property uniqueId A unique identifier string for the data item. Must be at least 10 characters long.
      *                   This is used as the collection name in the database.
      * @property version Version number of the data, defaults to 1
@@ -336,7 +352,7 @@ object UniversalServerStorage {
     data class Data(
         val id: Long = 0,
         val uniqueId: String = UniversalServerStorage.uniqueId,
-        val version: Int = 1,
+        val version: Long = 1,
         val timestamp: Long = System.currentTimeMillis(),
         val indexString1: String? = null,
         val indexString2: String? = null,

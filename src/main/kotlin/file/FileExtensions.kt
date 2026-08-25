@@ -1,7 +1,5 @@
 package file
 
-import kotnexlib.ExperimentalKotNexLibAPI
-import kotnexlib.ResultOf2
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -15,8 +13,7 @@ import java.util.zip.ZipOutputStream
  */
 fun File.existsDir(createIfNotExist: Boolean = true): Boolean {
     return if (exists()) {
-        if (isDirectory) true
-        else if (createIfNotExist) mkdirs()
+        isDirectory || if (createIfNotExist) mkdirs()
         else false
     } else if (createIfNotExist) mkdirs()
     else false
@@ -30,8 +27,7 @@ fun File.existsDir(createIfNotExist: Boolean = true): Boolean {
  */
 fun File.existsFile(createIfNotExist: Boolean = true): Boolean {
     return if (exists()) {
-        if (isFile) true
-        else if (createIfNotExist) createNewFile()
+        isFile || if (createIfNotExist) createNewFile()
         else false
     } else if (createIfNotExist) createNewFile()
     else false
@@ -46,45 +42,23 @@ fun File.existsFile(createIfNotExist: Boolean = true): Boolean {
  * @return the zip file oder an failure with the error message.
  */
 fun File.zipFiles(
-    parentFolderToStoreZip: File = File(parentFile.absolutePath),
+    parentFolderToStoreZip: File = parentFile ?: File(absoluteFile.parent ?: "."),
     zipName: String = "$nameWithoutExtension.zip"
 ): ZipResult {
+    val files = if (isDirectory) listFiles() else arrayOf(this)
+
+    if (files == null) return ZipResult.Failure("listFiles is null.")
+    else if (files.isEmpty()) return ZipResult.FolderIsEmpty
+
     val zipFile = File(parentFolderToStoreZip, zipName)
-    return ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zipOut ->
-        val files = if (isDirectory) listFiles() else arrayOf(this)
-
-        if (files == null) return ZipResult.Failure("listFiles is null.")
-        else if (files.isEmpty()) return ZipResult.FolderIsEmpty
-
-        try {
+    return try {
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zipOut ->
             zipFilesRecursive(this, zipOut)
-        } catch (e: Exception) {
-            return ZipResult.Failure("Error while zipping. -> Exception: ${e.stackTraceToString()}")
         }
         ZipResult.Success(zipFile)
-    }
-}
-
-/**
- * ToDo: Es wird dadurch keine gültige Zip erstellt. Es scheint der Header oder so zu fehlen.
- *  Muss noch geprüft werden, warum das passiert.
- */
-@ExperimentalKotNexLibAPI
-private fun File.zipFilesToByteArray(): ResultOf2<ByteArray, String> {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    return ZipOutputStream(BufferedOutputStream(byteArrayOutputStream)).use { zipOut ->
-        val files = if (isDirectory) listFiles() else arrayOf(this)
-
-        if (files == null) return ResultOf2.Failure("listFiles is null.")
-        else if (files.isEmpty()) return ResultOf2.Failure("Folder is empty! No files to Zip.")
-
-        try {
-            zipFilesRecursive(this, zipOut)
-        } catch (e: Exception) {
-            return ResultOf2.Failure("Error while zipping. -> Exception: ${e.stackTraceToString()}")
-        }
-
-        ResultOf2.Success(byteArrayOutputStream.toByteArray())
+    } catch (e: Exception) {
+        zipFile.delete()
+        ZipResult.Failure("Error while zipping. -> Exception: ${e.stackTraceToString()}")
     }
 }
 
@@ -94,7 +68,7 @@ private fun zipFilesRecursive(file: File, zipOut: ZipOutputStream, basePath: Str
     files.forEach { file ->
         val relativePath = basePath + file.name
         if (file.isDirectory) {
-            zipFilesRecursive(file, zipOut, "$relativePath${File.separator}")
+            zipFilesRecursive(file, zipOut, "$relativePath/")
         } else {
             BufferedInputStream(FileInputStream(file)).use {
                 val entry = ZipEntry(relativePath)
@@ -108,20 +82,22 @@ private fun zipFilesRecursive(file: File, zipOut: ZipOutputStream, basePath: Str
 
 /**
  * Unzips the file represented by this `File` instance into the specified destination folder.
- * If the `deleteAfterUnzip` flag is set to true, the original zip file will be deleted after the operation.
- * The `ignoreZipFileCheck` parameter allows skipping validation of whether the file is a ZIP file.
  *
- * @param destinationFolder The folder where the contents of the zip file will be extracted. Defaults to a folder
- *                          in the same directory as the zip file, with the same name as the zip file (without the extension).
- * @param deleteAfterUnzip  Indicates whether the zip file should be deleted after extraction. Defaults to false.
- * @param ignoreZipFileCheck If true, skips checking if the file is a valid ZIP file. Use with caution. Defaults to false.
- * @return [UnzipResult] indicating the success or failure of the operation.
+ * @param destinationFolder The folder where the contents of the zip file will be extracted.
+ *                          If it already exists, its contents will be deleted recursively before extraction.
+ * @param ignoreZipFileCheck If true, skips the validation check to verify if the file is a valid zip file. Default is false.
+ * @param deleteAfterUnzip If true, deletes the original zip file after the extraction is completed. Default is false.
+ * @return An [UnzipResult] indicating the outcome of the operation:
+ *         - [UnzipResult.Success]: If the extraction was successful, containing the destination folder.
+ *         - [UnzipResult.NotAZipFile]: If the file is not a valid zip file and [ignoreZipFileCheck] is false.
+ *         - [UnzipResult.Failure]: If an error occurs during the operation, with an error message describing the failure.
  */
 fun File.unzipFile(
-    destinationFolder: File = File(parentFile, nameWithoutExtension),
+    destinationFolder: File = File(parentFile ?: File(absoluteFile.parent ?: "."), nameWithoutExtension),
     deleteAfterUnzip: Boolean = false,
     ignoreZipFileCheck: Boolean = false
 ): UnzipResult {
+    if (exists().not()) return UnzipResult.Failure("File does not exist: $absolutePath")
     if (isFile.not()) return UnzipResult.Failure("The provided file is not a valid file.")
     if (ignoreZipFileCheck.not() && isZipFile().not()) return UnzipResult.NotAZipFile
 
@@ -130,6 +106,8 @@ fun File.unzipFile(
         return UnzipResult.Failure("Failed to create destination directory: ${destinationFolder.absolutePath}")
     }
 
+    val canonicalDestPath = destinationFolder.canonicalFile.toPath()
+
     return try {
         BufferedInputStream(FileInputStream(this)).use { fileInputStream ->
             ZipInputStream(fileInputStream).use { zipIn ->
@@ -137,6 +115,10 @@ fun File.unzipFile(
 
                 while (entry != null) {
                     val file = File(destinationFolder, entry.name)
+                    val canonicalFilePath = file.canonicalFile.toPath()
+                    if (!canonicalFilePath.startsWith(canonicalDestPath)) {
+                        return UnzipResult.Failure("Zip slip security violation: entry '${entry.name}' targets outside destination folder.")
+                    }
 
                     if (entry.isDirectory) {
                         if (!file.existsDir(createIfNotExist = true)) {
@@ -192,8 +174,7 @@ fun File.isZipFile(): Boolean = try {
     FileInputStream(this).use { fis ->
         val header = ByteArray(4)
         val bytesRead = fis.read(header)
-        if (bytesRead == 4) (header[0] == 0x50.toByte() && header[1] == 0x4B.toByte() && header[2] == 0x03.toByte() && header[3] == 0x04.toByte())
-        else false
+        bytesRead == 4 && (header[0] == 0x50.toByte() && header[1] == 0x4B.toByte() && header[2] == 0x03.toByte() && header[3] == 0x04.toByte())
     }
 } catch (ignore: Exception) {
     false

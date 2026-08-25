@@ -33,3 +33,28 @@ spinner.start()
 // ... do work
 spinner.stop("Done!")
 ```
+
+#### `NO_COLOR` Support
+
+`Terminal.supportsAnsiColors()` respects the [NO_COLOR standard](https://no-color.org): if the `NO_COLOR`
+environment variable is set (to any value), no ANSI codes are emitted, regardless of platform. All coloring functions
+and the components below check this automatically — there's nothing to opt into.
+
+### Interactive Prompts (`kotnexlib.terminal.Prompts`)
+
+Simple stdin prompts for CLI tools, built on top of `printColored`/`printlnColored` — they inherit `NO_COLOR`
+detection automatically.
+
+```kotlin
+val name = Prompts.prompt("What's your name?", default = "Anonymous")
+
+if (Prompts.confirm("Proceed?", default = true)) {
+    // ...
+}
+
+val environment = Prompts.select("Choose an environment", listOf("dev", "staging", "prod"))
+```
+
+- `prompt()`: Reads a line of text, with an optional default for empty input.
+- `confirm()`: Yes/no question; falls back to `default` for empty or unrecognized input.
+- `select()`: Numbered menu; re-prompts until a valid choice is made. `options` must not be empty.

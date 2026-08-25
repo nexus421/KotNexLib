@@ -67,4 +67,3 @@ open class EnumAsStringSerializer<T : Enum<*>>(
 
     override fun deserialize(decoder: Decoder) = deserialize(decoder.decodeString())
 }
-

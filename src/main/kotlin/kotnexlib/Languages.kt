@@ -25,7 +25,10 @@ class Languages(val code: String, val language: String, val region: String, val 
         EnglishSouthAfrica("en-ZA", "English", "South Africa", "English (South Africa)"),
         SpanishArgentina("es-AR", "Spanish", "Argentina", "Argentine Spanish"),
         SpanishChile("es-CL", "Spanish", "Chile", "Chilean Spanish"),
-        SpanishColumbia("es-CO", "Spanish", "Columbia", "Colombian Spanish"),
+        SpanishColombia("es-CO", "Spanish", "Colombia", "Colombian Spanish"),
+
+        @Deprecated("Typo in name, use SpanishColombia instead", ReplaceWith("SpanishColombia"))
+        SpanishColumbia("es-CO", "Spanish", "Colombia", "Colombian Spanish"),
         SpanishSpain("es-ES", "Spanish", "Spain", "Castilian Spanish (as spoken in Central-Northern Spain)"),
         SpanishMexico("es-MX", "Spanish", "Mexico", "Mexican Spanish"),
         SpanishUnitedStates("es-US", "Spanish", "United States", "American Spanish"),
@@ -40,7 +43,7 @@ class Languages(val code: String, val language: String, val region: String, val 
         IndonesianIndonesia("id-ID", "Indonesian", "Indonesia", "Indonesian (Indonesia)"),
         ItalianSwitzerland("it-CH", "Italian", "Switzerland", "\"Swiss\" Italian"),
         ItalianItaly("it-IT", "Italian", "Italy", "Standard Italian (as spoken in Italy)"),
-        JapaneseJapan("jp-JP", "Japanese", "Japan", "Japanese (Japan)"),
+        JapaneseJapan("ja-JP", "Japanese", "Japan", "Japanese (Japan)"),
         KoreanRepublicOfKorea("ko-KR", "Korean", "Republic of Korea", "Korean (Republic of Korea)"),
         DutchBelgium("nl-BE", "Dutch", "Belgium", "Belgian Dutch"),
         DutchTheNetherlands("nl-NL", "Dutch", "The Netherlands", "Standard Dutch (as spoken in The Netherlands)"),

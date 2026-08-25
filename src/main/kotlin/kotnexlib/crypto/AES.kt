@@ -117,7 +117,9 @@ object AES {
         ): Result<String> = runCatching {
             val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)
-            cipher.doFinal((if (compress) text.compress() else text)!!.toByteArray()).toBase64()
+            val bytes = text.toByteArray(Charsets.UTF_8)
+            val input = if (compress) bytes.compress()!! else bytes
+            cipher.doFinal(input).toBase64()
         }
 
         /**
@@ -366,9 +368,11 @@ object AES {
         ) = runCatching {
             if (password.length != 16 && password.length != 32) throw IllegalArgumentException("The password must be of a length of 16 or 32 characters!")
             val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
-                init(Cipher.ENCRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
+                init(Cipher.ENCRYPT_MODE, SecretKeySpec(password.toByteArray(Charsets.UTF_8), "AES"))
             }
-            cipher.doFinal((if (compress) text.compress() else text)!!.toByteArray()).toBase64()
+            val bytes = text.toByteArray(Charsets.UTF_8)
+            val input = if (compress) bytes.compress()!! else bytes
+            cipher.doFinal(input).toBase64()
         }
 
         /**
@@ -387,7 +391,7 @@ object AES {
         ) = runCatching {
             if (password.length != 16 && password.length != 32) throw IllegalStateException("The password must be of a length of 16 or 32 characters!")
             val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding").apply {
-                init(Cipher.DECRYPT_MODE, SecretKeySpec(password.toByteArray(), "AES"))
+                init(Cipher.DECRYPT_MODE, SecretKeySpec(password.toByteArray(Charsets.UTF_8), "AES"))
             }
             val decrypted = String(cipher.doFinal(encryptedText.fromBase64ToByteArray()), Charsets.UTF_8)
 
@@ -425,7 +429,7 @@ object AES {
             secretKey: SecretKey,
             nonce: ByteArray = Common.generateNonce(),
             compress: Boolean = false,
-        ): Result<String> = encrypt(text.toByteArray(), secretKey, nonce, compress)
+        ): Result<String> = encrypt(text.toByteArray(Charsets.UTF_8), secretKey, nonce, compress)
 
         /**
          * Encrypt this ByteArray with a given [secretKey] and a given [nonce] with AES/GCM/NoPadding.
@@ -445,10 +449,10 @@ object AES {
             nonce: ByteArray = Common.generateNonce(),
             compress: Boolean = false,
         ): Result<String> = runCatching {
-            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            val spec = GCMParameterSpec(128, nonce)
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec)
-            cipher.doFinal((if (compress) data.compress() else data)).toBase64()
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply {
+                init(Cipher.ENCRYPT_MODE, secretKey, GCMParameterSpec(128, nonce))
+            }
+            cipher.doFinal(if (compress) data.compress() else data).toBase64()
         }
 
         /**
@@ -510,7 +514,7 @@ object AES {
             password: String,
             salt: ByteArray = Common.generateSecureRandom(16),
             compress: Boolean = false
-        ): AESData = encryptWithPassword(text.toByteArray(), password, salt, compress)
+        ): AESData = encryptWithPassword(text.toByteArray(Charsets.UTF_8), password, salt, compress)
 
         /**
          * This method should help you to easily encrypt this ByteArray with a password.

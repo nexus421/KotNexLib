@@ -23,6 +23,12 @@ inline fun <reified C> Any.safeCast(): C? = this as? C
 inline fun <reified C, R> Any.letCast(block: (C) -> R): R = (this as C).let(block)
 
 @OptIn(ExperimentalUnsignedTypes::class)
+@Deprecated(
+    message = "Use Kotlin standard library toHexString() instead",
+    // imports is required: without it, the replacement text resolves right back to this
+    // function within this package/module (same-package declarations outrank default imports).
+    replaceWith = ReplaceWith("this.toHexString()", imports = ["kotlin.text.toHexString"])
+)
 fun ByteArray.toHexString() = asUByteArray().joinToString(separator = "") { it.toString(16).padStart(2, '0') }
 
 

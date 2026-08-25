@@ -148,10 +148,13 @@ object Terminal {
     fun isWindows(): Boolean = SystemProperties.osName().lowercase().contains("windows")
 
     /**
-     * Checks if ANSI color codes are supported on the current platform.
-     * @return true if ANSI color codes are supported, false otherwise.
+     * Checks if ANSI color codes should be used on the current platform. Respects the
+     * [NO_COLOR standard](https://no-color.org): if the `NO_COLOR` environment variable is set
+     * (regardless of its value), colors are never emitted.
+     * @return true if ANSI color codes are supported and not disabled via `NO_COLOR`, false otherwise.
      */
-    fun supportsAnsiColors(): Boolean = isLinux() || isMacOS() || (isWindows() && System.getenv("TERM") != null)
+    fun supportsAnsiColors(): Boolean =
+        System.getenv("NO_COLOR") == null && (isLinux() || isMacOS() || (isWindows() && System.getenv("TERM") != null))
 
     /**
      * The escape character used for ANSI escape sequences.
@@ -994,13 +997,13 @@ fun createTextBox(
 
     // Top border with optional title
     if (title != null && title.isNotEmpty()) {
-        val titlePadding = (actualWidth - title.length - 2) / 2
-        val leftPadding = titlePadding
-        val rightPadding = actualWidth - title.length - 2 - leftPadding
+        val totalBorder = actualWidth - title.length
+        val leftPaddingCount = totalBorder / 2
+        val rightPaddingCount = totalBorder - leftPaddingCount
 
         result.append(
-            "${color.colorCode}${style.styleCode}┌─${title}${
-                "─".repeat(rightPadding)
+            "${color.colorCode}${style.styleCode}┌${"─".repeat(leftPaddingCount)}${title}${
+                "─".repeat(rightPaddingCount)
             }┐${CommandLineStyles.RESET_ALL.styleCode}\n"
         )
     } else {

@@ -11,6 +11,11 @@ class IBANTest {
         val validIban = "DE89 3704 0044 0532 0130 00"
         assertTrue(IBAN.isValidIban(validIban))
         assertTrue(validIban.isValidIban())
+
+        // Lowercase should also be recognized as valid
+        val lowerIban = "de89 3704 0044 0532 0130 00"
+        assertTrue(IBAN.isValidIban(lowerIban))
+        assertTrue(lowerIban.isValidIban())
     }
 
     @Test
@@ -20,6 +25,7 @@ class IBANTest {
 
         assertFalse(IBAN.isValidIban("SHORT"))
         assertFalse(IBAN.isValidIban("This is definitely not an IBAN and is also too long for one"))
+        assertFalse(IBAN.isValidIban("DE89 3704 0044 0532 0130 0!")) // Invalid special char
     }
 
     @Test

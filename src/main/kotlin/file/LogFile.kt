@@ -72,7 +72,8 @@ open class LogFile(
         }
         if (logFile.length() > logSizeSettings.maxSizeInBytes) {
             if (printInfo) println("Log is full. Move and clear log.")
-            if (logSizeSettings.oldLogFile.existsFile()) logFile.copyTo(logSizeSettings.oldLogFile, true)
+            logSizeSettings.oldLogFile.parentFile?.mkdirs()
+            logFile.copyTo(logSizeSettings.oldLogFile, overwrite = true)
             logFile.writeText("Copied full log to ${logSizeSettings.oldLogFile.absolutePath} and cleared this one.")
         }
     }

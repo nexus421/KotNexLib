@@ -22,20 +22,22 @@ fun <T : Any> Delegates.once(
     onValueChanged: (() -> Unit)? = null
 ) = object : ReadWriteProperty<Any?, T> {
     private var value: T? = initialValue
+    private var isSet: Boolean = (initialValue != null)
 
-        override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-            return value ?: throw IllegalStateException("Property ${property.name} should be initialized before get.")
-        }
-
-        override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-            if (this.value != initialValue) {
-                if (throwOnChangeTry) throw IllegalStateException("Property ${property.name} cannot be set more than once.")
-                else return
-            }
-            this.value = value
-            onValueChanged?.invoke()
-        }
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        return value ?: throw IllegalStateException("Property ${property.name} should be initialized before get.")
     }
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        if (isSet) {
+            if (throwOnChangeTry) throw IllegalStateException("Property ${property.name} cannot be set more than once.")
+            else return
+        }
+        this.value = value
+        this.isSet = true
+        onValueChanged?.invoke()
+    }
+}
 
 /**
  * Makes sure, that this variable will only be declared once and can't be changed afterward. Like a lateinit val.
@@ -49,15 +51,17 @@ fun <T : Any> Delegates.once(
  */
 fun <T : Any> Delegates.onceOrNull(throwOnChangeTry: Boolean = true) = object : ReadWriteProperty<Any?, T?> {
     private var value: T? = null
+    private var isSet: Boolean = false
 
     override fun getValue(thisRef: Any?, property: KProperty<*>) = value
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
-        if (this.value != null) {
+        if (isSet) {
             if (throwOnChangeTry) throw IllegalStateException("Property ${property.name} cannot be set more than once.")
             else return
         }
         if (value == null) throw IllegalStateException("onceOrNull is not allowed to be set to null!")
         this.value = value
+        this.isSet = true
     }
 }

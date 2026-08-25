@@ -37,5 +37,6 @@ enum class QRCodeErrorCorrection(val value: Int) {
  *
  * @param quality choose your desired quality and size from [QRCodeErrorCorrection]
  */
+@Deprecated("Removed and not usable with version 4.3.0")
 fun QRCodeBuilder.setErrorCorrectionAndSize(quality: QRCodeErrorCorrection) =
     withMinimumInformationDensity(quality.value)

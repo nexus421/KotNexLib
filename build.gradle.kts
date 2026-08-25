@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.3.10"
+    kotlin("jvm") version "2.4.10"
     id("org.jetbrains.dokka-javadoc") version "2.1.0"
     `maven-publish`
 }
@@ -10,7 +10,7 @@ java {
 }
 
 group = "com.github.nexus421"
-version = "4.3.0"
+version = "4.4.0"
 val globalVersion = version.toString()
 
 repositories {
@@ -19,23 +19,24 @@ repositories {
 
 dependencies {
     //https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
 
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation(kotlin("reflect"))
-    compileOnly("io.objectbox:objectbox-kotlin:5.0.1")
-    compileOnly("io.objectbox:objectbox-java:5.0.1")
+    compileOnly("io.objectbox:objectbox-kotlin:5.4.1")
     compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.0")
-    compileOnly("io.ktor:ktor-server-core:3.0.2")
+    compileOnly("io.github.g0dkar:qrcode-kotlin:4.2.1")
+    compileOnly("io.ktor:ktor-server-core:3.4.2")
 
     //Ktor Client
-    compileOnly("io.ktor:ktor-client-core:3.3.3")
-    compileOnly("io.ktor:ktor-client-cio:3.3.3")
-    compileOnly("io.ktor:ktor-client-content-negotiation:3.3.3")
-    compileOnly("io.ktor:ktor-serialization-kotlinx-json:3.3.3")
-    compileOnly("io.ktor:ktor-client-auth:3.3.3")
+    compileOnly("io.ktor:ktor-client-core:3.4.2")
+    compileOnly("io.ktor:ktor-client-cio:3.4.2")
+    compileOnly("io.ktor:ktor-client-content-negotiation:3.4.2")
+    compileOnly("io.ktor:ktor-serialization-kotlinx-json:3.4.2")
+    compileOnly("io.ktor:ktor-client-auth:3.4.2")
 
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testImplementation("io.objectbox:objectbox-java:5.4.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

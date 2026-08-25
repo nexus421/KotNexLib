@@ -6,6 +6,8 @@ import kotnexlib.ExperimentalKotNexLibAPI
 import kotnexlib.crypto.AES
 import kotnexlib.fromBase64ToByteArray
 import kotnexlib.toBase64
+import java.util.concurrent.ConcurrentHashMap
+import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
 /**
@@ -37,6 +39,13 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
      * The password used for encryption and decryption. Must be set before performing encryption or decryption.
      * Larger is better.
      * Should load password from external source like keystore
+     *
+     * Warning: This is a single, mutable, object-level (effectively global) value, not thread-safe or
+     * scoped per entity/field. ObjectBox converters can be invoked concurrently from multiple threads, so
+     * if you need different passwords for different entities/fields at the same time, or use this converter
+     * concurrently with different passwords, one caller's password can overwrite another's mid-operation.
+     * Only safe when exactly one password is in use for the lifetime of the process, or when all access to
+     * this converter (including setting [password]) is externally synchronized.
      */
     var password: String = ""
 
@@ -48,6 +57,34 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
      */
     var compress: Boolean = false
 
+    /** Cache is cleared entirely once it exceeds this size, to prevent unbounded growth. */
+    private const val MAX_CACHED_KEYS = 512
+
+    private val keyCache = ConcurrentHashMap<String, SecretKey>()
+
+    /**
+     * Derives the AES key for [pass]/[salt], or returns it from the cache.
+     *
+     * Mainly helps with repeated access to the same record — a freshly written record always
+     * misses the cache on first read, since [convertToDatabaseValue] generates a new random salt
+     * per write. Cached keys stay in memory as a trade-off for this speedup, and the cache key
+     * effectively contains the password; use [clearKeyCache] (e.g. after a password change) to drop them.
+     *
+     * @param pass the password.
+     * @param salt the per-record salt.
+     * @return the derived AES key.
+     */
+    fun getOrDeriveKey(pass: String, salt: ByteArray): SecretKey {
+        if (keyCache.size > MAX_CACHED_KEYS) keyCache.clear()
+        val cacheKey = "${salt.toBase64()}:$pass"
+        return keyCache.computeIfAbsent(cacheKey) {
+            AES.Common.generateSecureAesKeyFromPassword(pass, salt)
+        }
+    }
+
+    /** Clears the key-derivation cache, e.g. after a password change. */
+    fun clearKeyCache() = keyCache.clear()
+
     const val FILE_SEPERATOR = "\u001C"
 
     override fun convertToEntityProperty(databaseValue: String?): String? {
@@ -58,7 +95,7 @@ object CryptoStringEncryptionWithPassword : PropertyConverter<String?, String?> 
         val (salt, iv, encryptedData) = databaseValue.split(FILE_SEPERATOR).let {
             Triple(it[0].fromBase64ToByteArray(), IvParameterSpec(it[1].fromBase64ToByteArray()), it[2])
         }
-        val secretKey = AES.Common.generateSecureAesKeyFromPassword(password, salt)
+        val secretKey = getOrDeriveKey(password, salt)
         return AES.CBC.decrypt(encryptedData, secretKey, iv, compress).getOrThrow()
     }
 

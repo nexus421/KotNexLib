@@ -12,6 +12,8 @@ import java.io.File
  * @param path to your root working directory. Do not use a separator at the and! Defaults to user.home
  * @param name of the workingDirFolder
  * @param printInfo if you don't want to print the information to stdout, set this to false.
+ *
+ * @throws IllegalStateException if a file (not a directory) already exists at the resolved base folder path.
  */
 open class BaseFolder(path: String = System.getProperty("user.home"), name: String, printInfo: Boolean = true) {
 
@@ -20,8 +22,7 @@ open class BaseFolder(path: String = System.getProperty("user.home"), name: Stri
     init {
         if (baseFolder.exists()) {
             if (baseFolder.isDirectory.not()) {
-                if (baseFolder.mkdirs()) println("Created base folder at ${baseFolder.absolutePath}")
-                else println("Could not create base folder at ${baseFolder.absolutePath}", printInfo)
+                throw IllegalStateException("Cannot create base folder at ${baseFolder.absolutePath}: a file already exists at this path.")
             } else println("Base folder exists at ${baseFolder.absolutePath}", printInfo)
         } else {
             if (baseFolder.mkdirs()) println("Created base folder at ${baseFolder.absolutePath}", printInfo)
@@ -38,7 +39,7 @@ open class BaseFolder(path: String = System.getProperty("user.home"), name: Stri
      */
     fun getSubfolder(name: String, create: Boolean = false): File {
         return File(baseFolder, name).apply {
-            if (exists().not()) mkdir()
+            if (create && exists().not()) mkdirs()
         }
     }
 }

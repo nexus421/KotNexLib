@@ -2,7 +2,6 @@ package kotnexlib
 
 import kotlin.concurrent.thread
 import kotlin.math.pow
-import kotlin.properties.Delegates
 
 
 /**
@@ -83,23 +82,31 @@ fun CharArray.createPermutationsMulti(
 ): Map<Int, ResultTimeMeasure<List<String>>> {
     if (from < 1) throw IllegalArgumentException("from is not allowed to be lower than 1.")
 
-    val results = mutableMapOf<Int, ResultTimeMeasure<List<String>>>()
-    var stopAll by Delegates.once(throwOnChangeTry = false, initialValue = false)
+    val results = java.util.concurrent.ConcurrentHashMap<Int, ResultTimeMeasure<List<String>>>()
+    val stopAll = java.util.concurrent.atomic.AtomicBoolean(false)
 
     val threads = mutableListOf<Thread>()
-    until.downTo(from).forEach {
+    until.downTo(from).forEach { length ->
         threads.add(thread {
-            results[it] = createPermutations(it, doNotFillResultList, if (onEachGeneration != null) { string ->
-                val result = onEachGeneration(string)
-                stopAll = result
-                stopAll
-            } else null)
+            results[length] = createPermutations(
+                length = length,
+                doNotFillResultList = doNotFillResultList,
+                onEachGeneration = if (onEachGeneration != null) { string ->
+                    if (stopAll.get()) {
+                        true
+                    } else {
+                        val shouldStop = onEachGeneration(string)
+                        if (shouldStop) stopAll.set(true)
+                        shouldStop
+                    }
+                } else null
+            )
         })
     }
 
     threads.forEach { it.join() }
 
-    return results
+    return results.toSortedMap()
 }
 
 /**

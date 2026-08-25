@@ -17,6 +17,15 @@ class ArgsInterpreterTest {
     }
 
     @Test
+    fun testValueContainingSplittingChar() {
+        val args = arrayOf("url=https://example.com/api?user=admin&token=xyz=123", "eq===")
+        val interpreter = ArgsInterpreter(args)
+
+        assertEquals("https://example.com/api?user=admin&token=xyz=123", interpreter.getValue("url"))
+        assertEquals("==", interpreter.getValue("eq"))
+    }
+
+    @Test
     fun testGetValueAsTypes() {
         val args = arrayOf("count=10", "price=9.99", "enabled=true", "disabled=false")
         val interpreter = ArgsInterpreter(args)
