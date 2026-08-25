@@ -22,7 +22,7 @@ class IterableExtensionsTest {
     @Test
     fun testSplitFilter() {
         val list = listOf(1, 2, 3, 4, 5, 6)
-        val split = list.partition { it % 2 == 0 }
+        val split = list.splitFilter { it % 2 == 0 }
 
         assertEquals(listOf(2, 4, 6), split.trueList)
         assertEquals(listOf(1, 3, 5), split.falseList)
