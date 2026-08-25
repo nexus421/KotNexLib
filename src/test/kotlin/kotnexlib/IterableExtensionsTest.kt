@@ -19,6 +19,7 @@ class IterableExtensionsTest {
         assertTrue(results[2].second)
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testSplitFilter() {
         val list = listOf(1, 2, 3, 4, 5, 6)
@@ -26,6 +27,32 @@ class IterableExtensionsTest {
 
         assertEquals(listOf(2, 4, 6), split.trueList)
         assertEquals(listOf(1, 3, 5), split.falseList)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testSplitFilterMatchesStdlibPartition() {
+        val list = listOf(1, 2, 3, 4, 5, 6)
+        val predicate: (Int) -> Boolean = { it % 2 == 0 }
+
+        val split = list.splitFilter(predicate)
+        val partitioned = list.partition(predicate)
+
+        assertEquals(partitioned.first, split.trueList)
+        assertEquals(partitioned.second, split.falseList)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testContainsPredicate() {
+        val list = listOf(1, 2, 3, 4, 5)
+
+        assertTrue(list.contains { it == 3 })
+        assertFalse(list.contains { it == 10 })
+
+        assertEquals(list.any { it == 3 }, list.contains { it == 3 })
+        assertEquals(list.any { it == 10 }, list.contains { it == 10 })
+        assertEquals(list.any { it % 2 == 0 }, list.contains { it % 2 == 0 })
     }
 
     @Test

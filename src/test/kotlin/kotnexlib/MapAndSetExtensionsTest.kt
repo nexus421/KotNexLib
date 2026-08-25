@@ -41,12 +41,23 @@ class MapAndSetExtensionsTest {
         assertFalse(map1.areEqual(map4))
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun testSetDifference() {
         val set1 = setOf("apple", "banana", "cherry")
         val set2 = setOf("banana", "dragonfruit")
 
-        val diff = set1.subtract(set2)
+        val diff = set1.difference(set2)
         assertEquals(setOf("apple", "cherry"), diff)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testSetDifferenceMatchesStdlibSubtract() {
+        val set1 = setOf("apple", "banana", "cherry")
+        val set2 = setOf("banana", "dragonfruit")
+
+        assertEquals(set1.subtract(set2), set1.difference(set2))
+        assertEquals(set1 - set2, set1.difference(set2))
     }
 }

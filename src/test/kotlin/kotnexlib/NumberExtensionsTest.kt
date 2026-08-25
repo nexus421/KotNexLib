@@ -2,6 +2,10 @@ package kotnexlib
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class NumberExtensionsTest {
 
@@ -52,5 +56,28 @@ class NumberExtensionsTest {
         assertEquals(25, 5.powOfTwo())
         assertEquals(25L, 5L.powOfTwo())
         assertEquals(25f, 5f.powOfTwo(), 0.001f)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testToMillisFrom() {
+        assertEquals(60_000L, 60.toMillisFrom(TimeUnit.Second))
+        assertEquals(60_000L, 60L.toMillisFrom(TimeUnit.Second))
+        assertEquals(5_184_000_000L, 60L.toMillisFrom(TimeUnit.Day))
+        assertEquals(3_600_000L, 1L.toMillisFrom(TimeUnit.Hour))
+        assertEquals(60_000L, 1L.toMillisFrom(TimeUnit.Minute))
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun testToMillisFromMatchesStdlibDuration() {
+        val value = 42L
+
+        assertEquals(value.days.inWholeMilliseconds, value.toMillisFrom(TimeUnit.Day))
+        assertEquals(value.hours.inWholeMilliseconds, value.toMillisFrom(TimeUnit.Hour))
+        assertEquals(value.minutes.inWholeMilliseconds, value.toMillisFrom(TimeUnit.Minute))
+        assertEquals(value.seconds.inWholeMilliseconds, value.toMillisFrom(TimeUnit.Second))
+
+        assertEquals(value.seconds.inWholeMilliseconds, value.toInt().toMillisFrom(TimeUnit.Second))
     }
 }
