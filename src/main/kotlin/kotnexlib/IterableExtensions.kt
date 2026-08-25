@@ -30,10 +30,9 @@ inline fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
  *
  * @return SplitList containing splitted list
  */
-@Deprecated(
-    message = "Use Kotlin standard library partition() instead",
-    replaceWith = ReplaceWith("this.partition(predicate)")
-)
+// No replaceWith: partition() returns Pair (.first/.second), not SplitList (.trueList/.falseList),
+// so a mechanical replacement compiles at the call site but breaks any code using the result.
+@Deprecated(message = "Use Kotlin standard library partition() instead")
 inline fun <T> Iterable<T>.splitFilter(predicate: (T) -> Boolean): SplitList<T> {
     val trueList = mutableListOf<T>()
     val falseList = mutableListOf<T>()
